@@ -31,12 +31,12 @@ AURA VIBE is an intelligent DJ system that bridges the gap between crowd partici
 │   Party Guests  │────│   AURA VIBE      │────│   Audio Output  │
 │   (Requests)    │    │   Web Interface  │    │   (Speakers)    │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
-                                │                        │
+                                │                       │
                        ┌────────▼────────┐              │
                        │  Request Queue  │              │
                        │   Management    │              │
                        └────────┬────────┘              │
-                                │                        │
+                                │                       │
                        ┌────────▼────────┐              │
                        │  ECHO AI Engine │──────────────┘
                        │  - Beat Analysis│
