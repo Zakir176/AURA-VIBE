@@ -1,0 +1,54 @@
+# Node modules (Vue, TypeScript, etc.)
+node_modules/
+
+# Build output (dist, build, etc.)
+dist/
+build/
+
+# Local environment files (API keys, secrets)
+.env
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# TypeScript files (optional, if using TypeScript)
+*.tsbuildinfo
+
+# NPM / Yarn lock files (optional, if using Yarn instead of NPM)
+package-lock.json
+yarn.lock
+
+# Python (if using Python in the backend or elsewhere)
+*.pyc
+*.pyo
+__pycache__/
+
+# Virtual environment folders for Python
+venv/
+env/
+.venv/
+
+# IDE-related files (e.g., JetBrains, Sublime, etc.)
+*.iml
+.idea/
+
+# Docker-related files (optional)
+.docker/
+
+# macOS Finder files
+*.AppleDouble
