@@ -24,21 +24,43 @@ actionable insights for learners, creators, and professionals.
 
 ## 📂 Project Structure
 
-    AURA-VIBE/
-    │── src/               # Main source code
-    │   ├── assets/        # Images, icons, media files
-    │   ├── components/    # Reusable UI components
-    │   ├── pages/         # Core application pages
-    │   ├── services/      # API calls and business logic
-    │   ├── utils/         # Helper functions
-    │   └── styles/        # Global and modular CSS/SCSS
-    │
-    │── public/            # Static files (favicon, index.html, manifest)
-    │── tests/             # Unit and integration tests
-    │── docs/              # Documentation and resources
-    │── README.md          # Project documentation
-    │── package.json       # Dependencies and scripts
-    │── .gitignore         # Git ignore rules
+AURA-VIBE/
+│
+├── frontend/                # Vue.js app
+│   ├── public/              # Static assets
+│   ├── src/
+│   │   ├── assets/          # Images, logos, icons
+│   │   ├── components/      # Vue components (Navbar, Sidebar, Widgets, etc.)
+│   │   ├── pages/           # Main app pages (Dashboard.vue, StudyMode.vue, etc.)
+│   │   ├── router/          # Vue Router config
+│   │   ├── store/           # Pinia/Vuex state management
+│   │   ├── utils/           # Helper functions
+│   │   ├── App.vue          # Root Vue component
+│   │   └── main.js          # Vue entry point
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
+│
+├── backend/                 # FastAPI app
+│   ├── app/
+│   │   ├── api/             # Route handlers
+│   │   ├── core/            # Core configs (security, settings)
+│   │   ├── models/          # Database models
+│   │   ├── schemas/         # Pydantic schemas
+│   │   ├── services/        # Business logic
+│   │   ├── main.py          # FastAPI entry point
+│   │   └── __init__.py
+│   ├── requirements.txt
+│   └── alembic/             # If you use migrations
+│
+├── docs/                    # Documentation
+│   └── README.md
+│
+├── tests/                   # Unit + integration tests
+│
+├── .gitignore
+└── README.md
+
 
 ------------------------------------------------------------------------
 
