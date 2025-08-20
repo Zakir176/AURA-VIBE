@@ -1,13 +1,10 @@
 <template>
   <div
-    v-motion
-    class="bg-surface p-6 rounded-xl shadow-md flex flex-col items-center text-center hover:shadow-lg transition cursor-default"
+    class="bg-white p-6 rounded-xl shadow-md border border-gray-200 text-center transform transition-transform duration-300 hover:scale-105 hover:shadow-xl cursor-pointer"
   >
-    <div class="text-5xl mb-4" aria-hidden="true">
-      {{ icon }}
-    </div>
-    <h3 class="text-xl font-semibold mb-2 text-primary-end">{{ title }}</h3>
-    <p class="text-text">{{ description }}</p>
+    <div class="text-5xl mb-4">{{ icon }}</div>
+    <h3 class="text-xl font-bold mb-2 text-purple-600">{{ title }}</h3>
+    <p class="text-gray-600">{{ description }}</p>
   </div>
 </template>
 

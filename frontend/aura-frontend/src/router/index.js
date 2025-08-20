@@ -4,10 +4,9 @@ import LandingPage from '@/pages/LandingPage.vue'
 const routes = [
   {
     path: '/',
-    name: 'Landing',
+    name: 'Home',
     component: LandingPage,
   },
-  // Add other routes here later
 ]
 
 const router = createRouter({

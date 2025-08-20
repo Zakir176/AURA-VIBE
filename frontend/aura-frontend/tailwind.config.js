@@ -15,14 +15,13 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'primary-start': '#00CFFF',
-        'primary-end': '#FF3EC8',
-        glow: '#9C27B0',
-        'bg-dark': '#0A0A0A',
-        accent: '#84F9FF',
-        text: '#E0E0E0',
+        primary: {
+          start: '#a855f7', // purple-500
+          end: '#ec4899',   // pink-500
+        },
+        bg: '#ffffff',
+        text: '#1f2937', // gray-800
       },
     },
-  },
-  plugins: [],
+  }
 }
