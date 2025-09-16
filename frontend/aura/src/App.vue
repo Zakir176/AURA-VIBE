@@ -1,11 +1,19 @@
-<script setup></script>
-
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <v-app>
+    <Navbar />
+    <Hero />
+    <Features />
+    <Showcase />
+    <Pricing />
+    <Footer />
+  </v-app>
 </template>
 
-<style scoped></style>
+<script setup>
+// import Navbar from './components/Navbar.vue'
+import Hero from './components/Hero.vue'
+// import Features from './components/Features.vue'
+// import Showcase from './components/Showcase.vue'
+// import Pricing from './components/Pricing.vue'
+// import Footer from './components/Footer.vue'
+</script>
