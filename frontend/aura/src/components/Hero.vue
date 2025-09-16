@@ -26,7 +26,7 @@
         <!-- Right side: Image -->
         <v-col cols="12" md="6" class="text-center">
           <transition name="fade-up" appear>
-            <img src="\assets/logo.png" alt="Aura Mockup" class="hero-image" />
+            <img src="\assets/soundwave.png" alt="Aura Mockup" class="hero-image" />
           </transition>
         </v-col>
       </v-row>
