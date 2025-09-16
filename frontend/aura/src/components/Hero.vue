@@ -37,32 +37,64 @@
 <style scoped>
 .hero {
   min-height: 100vh;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 40%, #ffe5e5 100%);
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
 }
 
-/* .gradient-text {
-  background: linear-gradient(90deg, #D63384, #FF6B6B, #FFB84D);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent; 
+/* Blurred gradient overlay */
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -200px;
+  left: -200px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(135, 206, 235, 0.6), rgba(230, 230, 250, 0.3));
+  filter: blur(120px);
+  z-index: 0;
 }
-*/
+
+.hero::after {
+  content: "";
+  position: absolute;
+  bottom: -150px;
+  right: -150px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(214, 51, 132, 0.2), rgba(255, 107, 107, 0.15));
+  filter: blur(100px);
+  z-index: 0;
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #87CEEB, #E6E6FA);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .cta-btn {
-  background: linear-gradient(90deg, #D63384, #FF6B6B, #FFB84D);
+  background: linear-gradient(90deg, #87CEEB, #E6E6FA);
   color: white;
   font-weight: bold;
   border-radius: 12px;
   transition: all 0.3s ease-in-out;
+  z-index: 1;
 }
 .cta-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 20px rgba(214, 51, 132, 0.4);
+  box-shadow: 0 8px 20px rgba(135, 206, 235, 0.4);
 }
 
 .hero-image {
   max-width: 450px;
   border-radius: 24px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 1;
 }
+
+/* Animations */
 .fade-up-enter-active {
   transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
