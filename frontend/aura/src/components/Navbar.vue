@@ -10,17 +10,17 @@
       <v-container class="d-flex align-center justify-space-between">
         <!-- Logo -->
         <div class="d-flex align-center">
-          <img src="@/assets/logo.png" alt="Aura Vibe Logo" class="logo" />
+          <img src="\assets/logo.png" alt="Aura Vibe Logo" class="logo" />
           <span class="brand">Aura Vibe</span>
         </div>
 
         <!-- Links -->
-        <div class="nav-links">
+        <v-row class="d-none d-md-flex" dense>
           <v-btn variant="text" class="nav-link">Home</v-btn>
           <v-btn variant="text" class="nav-link">Features</v-btn>
           <v-btn variant="text" class="nav-link">Pricing</v-btn>
           <v-btn variant="text" class="nav-link">About</v-btn>
-        </div>
+        </v-row>
 
         <!-- CTA -->
         <v-btn color="primary" class="rounded-pill px-6">Get Started</v-btn>
@@ -37,9 +37,11 @@ let lastScrollY = window.scrollY;
 
 const handleScroll = () => {
   if (window.scrollY > lastScrollY && window.scrollY > 100) {
-    showNavbar.value = false; // scrolling down
+    // scrolling down → hide navbar
+    showNavbar.value = false;
   } else {
-    showNavbar.value = true; // scrolling up
+    // scrolling up → show navbar
+    showNavbar.value = true;
   }
   lastScrollY = window.scrollY;
 };
@@ -47,6 +49,7 @@ const handleScroll = () => {
 onMounted(() => {
   window.addEventListener("scroll", handleScroll);
 });
+
 onUnmounted(() => {
   window.removeEventListener("scroll", handleScroll);
 });
@@ -74,11 +77,6 @@ onUnmounted(() => {
   font-weight: 600;
   font-size: 1.2rem;
   color: white;
-}
-
-.nav-links {
-  display: flex;
-  gap: 20px;
 }
 
 .nav-link {
