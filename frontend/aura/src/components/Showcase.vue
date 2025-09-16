@@ -53,7 +53,7 @@
 }
 .step-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 12px 24px rgba(135, 206, 235, 0.15);
+  box-shadow: 0 12px 30px rgba(149, 120, 204, 0.5);
 }
 .step-icon {
   font-size: 2rem;

@@ -1,17 +1,17 @@
 <template>
   <section class="hero d-flex align-center">
     <v-container>
-      <v-row align="center">
+      <v-row align="center" no-gutters>
         <!-- Left side: Text -->
         <v-col cols="12" md="6" class="text-left">
           <transition name="fade-up" appear>
-            <h1 class="display-2 font-weight-bold mb-6">
+            <h1 class="display-2 font-weight-bold mb-6 hero-heading">
               Experience the Future of <span class="gradient-text">Creativity</span>
             </h1>
           </transition>
 
           <transition name="fade-up" appear>
-            <p class="subtitle-1 mb-8 text-grey-darken-1">
+            <p class="subtitle-1 mb-8 text-grey-darken-1 hero-subtitle">
               Aura Vibe helps you craft powerful, AI-driven experiences with simplicity, elegance, and speed.
             </p>
           </transition>
@@ -26,7 +26,7 @@
         <!-- Right side: Image -->
         <v-col cols="12" md="6" class="text-center">
           <transition name="fade-up" appear>
-            <img src="\assets/soundwave.png" alt="Aura Mockup" class="hero-image" />
+            <img src="/assets/soundwave.png" alt="Aura Mockup" class="hero-image" />
           </transition>
         </v-col>
       </v-row>
@@ -40,6 +40,7 @@
   position: relative;
   overflow: hidden;
   background: #ffffff;
+  padding-top: 20px; /* Space for small screens */
 }
 
 /* Blurred gradient overlay */
@@ -87,7 +88,9 @@
 }
 
 .hero-image {
-  max-width: 450px;
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: cover;
   border-radius: 24px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   position: relative;
@@ -101,5 +104,48 @@
 .fade-up-enter-from {
   opacity: 0;
   transform: translateY(40px);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 960px) {
+  .hero {
+    padding-top: 80px; /* Add space for the fixed navbar on smaller screens */
+  }
+
+  .hero-heading {
+    font-size: 2.5rem; /* Smaller font for mobile */
+  }
+
+  .hero-subtitle {
+    font-size: 1rem; /* Smaller font for subtitle */
+  }
+
+  .cta-btn {
+    font-size: 1.1rem;
+    padding: 12px 20px;
+  }
+
+  .hero-image {
+    max-height: 250px;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero-heading {
+    font-size: 2rem; /* Even smaller font for mobile devices */
+  }
+
+  .hero-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .cta-btn {
+    font-size: 1rem;
+    padding: 10px 18px;
+  }
+
+  .hero-image {
+    max-height: 200px;
+  }
 }
 </style>
