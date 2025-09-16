@@ -1,75 +1,99 @@
 <template>
-  <v-app-bar
-    app
-    flat
-    elevate-on-scroll
-    class="navbar"
-  >
-    <!-- Logo -->
-    <v-toolbar-title class="text-h5 font-weight-bold text-primary">
-      AURA
-    </v-toolbar-title>
-
-    <!-- Desktop Links -->
-    <v-spacer></v-spacer>
-    <div class="d-none d-md-flex align-center">
-      <v-btn text to="#home">Home</v-btn>
-      <v-btn text to="#features">Features</v-btn>
-      <v-btn text to="#pricing">Pricing</v-btn>
-      <v-btn text to="#about">About</v-btn>
-      <v-btn text to="#contact">Contact</v-btn>
-    </div>
-
-    <!-- CTA -->
-    <v-btn
-      class="ml-4"
-      color="primary"
-      rounded
-      depressed
-      to="#get-started"
+  <transition name="fade">
+    <v-app-bar
+      v-show="showNavbar"
+      app
+      flat
+      height="70"
+      class="navbar"
     >
-      Get Started
-    </v-btn>
+      <v-container class="d-flex align-center justify-space-between">
+        <!-- Logo -->
+        <div class="d-flex align-center">
+          <img src="@/assets/logo.png" alt="Aura Vibe Logo" class="logo" />
+          <span class="brand">Aura Vibe</span>
+        </div>
 
-    <!-- Mobile Menu -->
-    <v-app-bar-nav-icon class="d-md-none" @click="drawer = !drawer"></v-app-bar-nav-icon>
-  </v-app-bar>
+        <!-- Links -->
+        <div class="nav-links">
+          <v-btn variant="text" class="nav-link">Home</v-btn>
+          <v-btn variant="text" class="nav-link">Features</v-btn>
+          <v-btn variant="text" class="nav-link">Pricing</v-btn>
+          <v-btn variant="text" class="nav-link">About</v-btn>
+        </div>
 
-  <!-- Drawer for Mobile -->
-  <v-navigation-drawer
-    v-model="drawer"
-    temporary
-    right
-  >
-    <v-list>
-      <v-list-item v-for="item in menu" :key="item.text" :to="item.link">
-        <v-list-item-title>{{ item.text }}</v-list-item-title>
-      </v-list-item>
-      <v-divider></v-divider>
-      <v-list-item to="#get-started">
-        <v-btn block color="primary" rounded>Get Started</v-btn>
-      </v-list-item>
-    </v-list>
-  </v-navigation-drawer>
+        <!-- CTA -->
+        <v-btn color="primary" class="rounded-pill px-6">Get Started</v-btn>
+      </v-container>
+    </v-app-bar>
+  </transition>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 
-const drawer = ref(false);
+const showNavbar = ref(true);
+let lastScrollY = window.scrollY;
 
-const menu = [
-  { text: "Home", link: "#home" },
-  { text: "Features", link: "#features" },
-  { text: "Pricing", link: "#pricing" },
-  { text: "About", link: "#about" },
-  { text: "Contact", link: "#contact" },
-];
+const handleScroll = () => {
+  if (window.scrollY > lastScrollY && window.scrollY > 100) {
+    showNavbar.value = false; // scrolling down
+  } else {
+    showNavbar.value = true; // scrolling up
+  }
+  lastScrollY = window.scrollY;
+};
+
+onMounted(() => {
+  window.addEventListener("scroll", handleScroll);
+});
+onUnmounted(() => {
+  window.removeEventListener("scroll", handleScroll);
+});
 </script>
 
 <style scoped>
 .navbar {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 123, 255, 0.85),
+    rgba(0, 180, 255, 0.85)
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.logo {
+  height: 100px;
+  margin-right: 10px;
+}
+
+.brand {
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: white;
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-link {
+  color: white !important;
+  font-weight: 500;
+  text-transform: none;
+}
+
+/* Fade transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.4s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
