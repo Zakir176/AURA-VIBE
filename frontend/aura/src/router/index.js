@@ -4,7 +4,7 @@ import GetStarted from "@/views/GetStarted.vue";
 import SessionCreate from "@/views/SessionCreate.vue";
 import JoinSession from "@/views/JoinSession.vue";
 import Login from "@/views/Login.vue";
-// import { isAuthenticated } from "@/utils/auth";
+import { isAuthenticated } from "@/utils/auth.js";
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
 const routes = [
