@@ -4,23 +4,17 @@
       <v-row align="center" no-gutters>
         <!-- Left side: Text -->
         <v-col cols="12" md="6" class="text-left">
-          <transition name="fade-up" appear>
-            <h1 ref="headingRef" class="display-2 font-weight-bold mb-4 hero-heading">
-              Experience the Future of <span class="gradient-text">Creativity</span>
-            </h1>
-          </transition>
+          <h1 class="text-h2 font-weight-bold mb-4 hero-heading">
+            Experience the Future of <span class="gradient-text">Creativity</span>
+          </h1>
 
-          <transition name="fade-up" appear>
-            <p ref="subtitleRef" class="subtitle-1 mb-8 text-grey-darken-1 hero-subtitle">
-              Aura Vibe blends intelligence with design — simple, elegant, fast.
-            </p>
-          </transition>
+          <p class="text-subtitle-1 mb-8 hero-subtitle">
+            Aura Vibe blends intelligence with design — simple, elegant, fast.
+          </p>
 
-          <transition name="fade-up" appear>
-            <v-btn ref="ctaRef" size="x-large" class="cta-btn" :to="{ name: 'GetStarted' }">
-              Get Started →
-            </v-btn>
-          </transition>
+          <v-btn size="x-large" class="cta-btn" :to="{ name: 'GetStarted' }">
+            Get Started →
+          </v-btn>
         </v-col>
 
         <!-- Right side: Image -->
@@ -41,20 +35,9 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const headingRef = ref(null)
-const subtitleRef = ref(null)
-const ctaRef = ref(null)
 const imageRef = ref(null)
 
 onMounted(() => {
-  gsap.from([headingRef.value, subtitleRef.value, ctaRef.value], {
-    opacity: 0,
-    y: 30,
-    duration: 0.9,
-    ease: 'power3.out',
-    stagger: 0.12
-  })
-
   if (imageRef.value) {
     gsap.from(imageRef.value, {
       opacity: 0,
