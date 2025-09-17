@@ -1,5 +1,5 @@
 <template>
-  <section class="features">
+  <section class="features"  id="features">
     <v-container>
       <h2 class="section-title text-center mb-12">Why Choose Aura Vibe?</h2>
 

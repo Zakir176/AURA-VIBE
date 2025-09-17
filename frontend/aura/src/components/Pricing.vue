@@ -1,6 +1,6 @@
-<template>
-  <v-container fluid class="pricing-section d-flex align-center justify-center">
-    <div class="glass-card">
+<template >
+  <v-container  fluid class="pricing-section d-flex align-center justify-center">
+    <div class="glass-card" >
       <h2 class="title">Our Pricing</h2>
       <p class="subtitle">Choose a plan that fits your needs</p>
 

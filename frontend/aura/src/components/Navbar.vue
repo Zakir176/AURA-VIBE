@@ -116,7 +116,7 @@ onUnmounted(() => {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.logo {ha
+.logo {
   height: 50px;
   margin-right: 10px;
 }
