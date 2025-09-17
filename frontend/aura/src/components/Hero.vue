@@ -17,7 +17,7 @@
           </transition>
 
           <transition name="fade-up" appear>
-            <v-btn size="x-large" class="cta-btn">
+            <v-btn size="x-large" class="cta-btn" :to="{ name: 'CreateSession' }">
               Get Started →
             </v-btn>
           </transition>

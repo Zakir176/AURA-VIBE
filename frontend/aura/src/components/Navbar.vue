@@ -23,7 +23,7 @@
         </v-row>
 
         <!-- CTA (desktop only) -->
-        <v-btn class="d-none d-md-flex rounded-pill px-6 cta-btn" @click="scrollTo('cta')">
+        <v-btn class="d-none d-md-flex rounded-pill px-6 cta-btn" :to="{ name: 'CreateSession' }">
           Get Started
         </v-btn>
 
@@ -60,8 +60,8 @@
       </v-list-item>
     </v-list>
     <div class="pa-4">
-      <v-btn block class="rounded-pill cta-btn" @click="scrollTo('cta'); drawer = false">
-        Get Started
+      <v-btn color="primary" class="rounded-pill px-6" :to="{ name: 'CreateSession' }">
+      Get Started
       </v-btn>
     </div>
   </v-navigation-drawer>
