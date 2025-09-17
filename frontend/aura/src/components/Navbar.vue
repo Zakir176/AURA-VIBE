@@ -23,7 +23,7 @@
         </v-row>
 
         <!-- CTA (desktop only) -->
-        <v-btn class="d-none d-md-flex rounded-pill px-6 cta-btn" :to="{ name: 'CreateSession' }">
+        <v-btn class="d-none d-md-flex rounded-pill px-6 cta-btn" :to="{ name: 'GetStarted' }">
           Get Started
         </v-btn>
 
@@ -60,7 +60,7 @@
       </v-list-item>
     </v-list>
     <div class="pa-4">
-      <v-btn color="primary" class="rounded-pill px-6" :to="{ name: 'CreateSession' }">
+      <v-btn color="primary" class="rounded-pill px-6" :to="{ name: 'GetStarted' }">
       Get Started
       </v-btn>
     </div>
