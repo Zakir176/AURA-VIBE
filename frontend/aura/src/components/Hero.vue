@@ -51,7 +51,7 @@
   left: -200px;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(135, 206, 235, 0.6), rgba(230, 230, 250, 0.3));
+  background: radial-gradient(circle, #4393b3, #8c8ce0);
   filter: blur(120px);
   z-index: 0;
 }
@@ -69,13 +69,13 @@
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, #87CEEB, #E6E6FA);
+  background: linear-gradient(90deg, #4393b3, #8c8ce0);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .cta-btn {
-  background: linear-gradient(90deg, #87CEEB, #E6E6FA);
+  background: linear-gradient(90deg, #4393b3, #8c8ce0);
   color: white;
   font-weight: bold;
   border-radius: 12px;
