@@ -10,16 +10,16 @@
       <v-container class="d-flex align-center justify-space-between">
         <!-- Logo + Brand -->
         <div class="d-flex align-center">
-          <img src="\assets/logo.png" alt="Aura Vibe Logo" class="logo" />
+          <img src="/assets/logo.png" alt="Aura Vibe Logo" class="logo" />
           <span class="brand">Aura Vibe</span>
         </div>
 
         <!-- Desktop Links -->
         <v-row class="d-none d-md-flex" dense>
-          <v-btn variant="text" class="nav-link" @click="scrollTo('home')">Home</v-btn>
-          <v-btn variant="text" class="nav-link" @click="scrollTo('features')">Features</v-btn>
-          <v-btn variant="text" class="nav-link" @click="scrollTo('pricing')">Pricing</v-btn>
-          <v-btn variant="text" class="nav-link" @click="scrollTo('about')">About</v-btn>
+          <v-btn variant="text" class="nav-link" :to="{ name: 'Home' }">Home</v-btn>
+          <v-btn variant="text" class="nav-link" :to="{ path: '/', hash: '#features' }">Features</v-btn>
+          <v-btn variant="text" class="nav-link" :to="{ path: '/', hash: '#pricing' }">Pricing</v-btn>
+          <v-btn variant="text" class="nav-link" :to="{ path: '/', hash: '#about' }">About</v-btn>
         </v-row>
 
         <!-- CTA (desktop only) -->
@@ -46,16 +46,16 @@
     right
   >
     <v-list>
-      <v-list-item @click="scrollTo('home'); drawer = false">
+      <v-list-item :to="{ name: 'Home' }" @click="drawer = false">
         <v-list-item-title>Home</v-list-item-title>
       </v-list-item>
-      <v-list-item @click="scrollTo('features'); drawer = false">
+      <v-list-item :to="{ path: '/', hash: '#features' }" @click="drawer = false">
         <v-list-item-title>Features</v-list-item-title>
       </v-list-item>
-      <v-list-item @click="scrollTo('pricing'); drawer = false">
+      <v-list-item :to="{ path: '/', hash: '#pricing' }" @click="drawer = false">
         <v-list-item-title>Pricing</v-list-item-title>
       </v-list-item>
-      <v-list-item @click="scrollTo('about'); drawer = false">
+      <v-list-item :to="{ path: '/', hash: '#about' }" @click="drawer = false">
         <v-list-item-title>About</v-list-item-title>
       </v-list-item>
     </v-list>

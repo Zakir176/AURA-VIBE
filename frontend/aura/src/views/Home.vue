@@ -1,10 +1,10 @@
 <template>
   <v-app>
-    <Hero />
-    <Features />
-    <Showcase />
-    <Pricing />
-    <Footer />
+    <Hero id="home" />
+    <Features id="features" />
+    <Showcase id="how" />
+    <Pricing id="pricing" />
+    <Footer id="about" />
   </v-app>
 </template>
 
