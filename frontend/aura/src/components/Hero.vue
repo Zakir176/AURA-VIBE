@@ -141,6 +141,18 @@ onMounted(() => {
   z-index: 1;
 }
 
+.hero-heading {
+  position: relative;
+  z-index: 1;
+  color: #0d1b2a; /* dark text for visibility */
+}
+
+.hero-subtitle {
+  position: relative;
+  z-index: 1;
+  color: #5c6b7a; /* subtle secondary */
+}
+
 /* Animations */
 .fade-up-enter-active {
   transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
