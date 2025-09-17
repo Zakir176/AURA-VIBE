@@ -6,7 +6,7 @@
 
       <v-row class="mt-6" justify="center" align="stretch">
         <v-col cols="12" sm="4" v-for="(plan, index) in plans" :key="index">
-          <v-card class="pricing-card" elevation="0">
+          <v-card class="pricing-card" elevation="0" data-pricing-card>
             <v-card-title class="text-h6">{{ plan.name }}</v-card-title>
             <v-card-subtitle class="price">{{ plan.price }}</v-card-subtitle>
             <v-card-text class="features">
@@ -25,6 +25,12 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
+
 const plans = [
   {
     name: "Basic",
@@ -42,6 +48,21 @@ const plans = [
     features: ["Unlimited users", "Unlimited projects", "24/7 support"],
   },
 ];
+
+onMounted(() => {
+  const cards = document.querySelectorAll('[data-pricing-card]')
+  gsap.from(cards, {
+    opacity: 0,
+    y: 24,
+    duration: 0.6,
+    ease: 'power2.out',
+    stagger: 0.12,
+    scrollTrigger: {
+      trigger: cards[0] || '.pricing-section',
+      start: 'top 85%'
+    }
+  })
+})
 </script>
 
 <style scoped>

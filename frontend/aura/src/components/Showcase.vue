@@ -5,19 +5,19 @@
       <h2 class="section-title text-center mb-12">How It Works</h2>
 
       <v-row class="step-row" align="center" justify="center">
-        <v-col cols="12" md="4" class="step-card">
+        <v-col cols="12" md="4" class="step-card" data-step>
           <div class="step-icon">1</div>
           <h3>Create Your Aura</h3>
           <p>Upload your playlist or start from scratch — Aura Vibe tailors the mood to your energy.</p>
         </v-col>
 
-        <v-col cols="12" md="4" class="step-card">
+        <v-col cols="12" md="4" class="step-card" data-step>
           <div class="step-icon">2</div>
           <h3>Set the Vibe</h3>
           <p>Choose your vibe — chill, hype, or custom — and let AI mix transitions and moments.</p>
         </v-col>
 
-        <v-col cols="12" md="4" class="step-card">
+        <v-col cols="12" md="4" class="step-card" data-step>
           <div class="step-icon">3</div>
           <h3>Play It Live</h3>
           <p>Sync across devices, accept requests in real-time, and keep the flow seamless.</p>
@@ -26,6 +26,29 @@
     </v-container>
   </section>
 </template>
+
+<script setup>
+import { onMounted } from 'vue'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
+
+onMounted(() => {
+  const steps = document.querySelectorAll('[data-step]')
+  gsap.from(steps, {
+    opacity: 0,
+    y: 32,
+    duration: 0.7,
+    ease: 'power2.out',
+    stagger: 0.15,
+    scrollTrigger: {
+      trigger: steps[0],
+      start: 'top 80%'
+    }
+  })
+})
+</script>
 
 <style scoped>
 .how-it-works {

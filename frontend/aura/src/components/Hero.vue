@@ -5,19 +5,19 @@
         <!-- Left side: Text -->
         <v-col cols="12" md="6" class="text-left">
           <transition name="fade-up" appear>
-            <h1 class="display-2 font-weight-bold mb-6 hero-heading">
+            <h1 ref="headingRef" class="display-2 font-weight-bold mb-4 hero-heading">
               Experience the Future of <span class="gradient-text">Creativity</span>
             </h1>
           </transition>
 
           <transition name="fade-up" appear>
-            <p class="subtitle-1 mb-8 text-grey-darken-1 hero-subtitle">
-              Aura Vibe helps you craft powerful, AI-driven experiences with simplicity, elegance, and speed.
+            <p ref="subtitleRef" class="subtitle-1 mb-8 text-grey-darken-1 hero-subtitle">
+              Aura Vibe blends intelligence with design — simple, elegant, fast.
             </p>
           </transition>
 
           <transition name="fade-up" appear>
-            <v-btn size="x-large" class="cta-btn" :to="{ name: 'GetStarted' }">
+            <v-btn ref="ctaRef" size="x-large" class="cta-btn" :to="{ name: 'GetStarted' }">
               Get Started →
             </v-btn>
           </transition>
@@ -26,13 +26,57 @@
         <!-- Right side: Image -->
         <v-col cols="12" md="6" class="text-center">
           <transition name="fade-up" appear>
-            <img src="/assets/soundwave.png" alt="Aura Mockup" class="hero-image" />
+            <img ref="imageRef" src="/assets/soundwave.png" alt="Aura Mockup" class="hero-image" />
           </transition>
         </v-col>
       </v-row>
     </v-container>
   </section>
 </template>
+
+<script setup>
+import { onMounted, ref } from 'vue'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
+
+const headingRef = ref(null)
+const subtitleRef = ref(null)
+const ctaRef = ref(null)
+const imageRef = ref(null)
+
+onMounted(() => {
+  gsap.from([headingRef.value, subtitleRef.value, ctaRef.value], {
+    opacity: 0,
+    y: 30,
+    duration: 0.9,
+    ease: 'power3.out',
+    stagger: 0.12
+  })
+
+  if (imageRef.value) {
+    gsap.from(imageRef.value, {
+      opacity: 0,
+      y: 40,
+      scale: 0.98,
+      duration: 1,
+      ease: 'power3.out'
+    })
+
+    gsap.to(imageRef.value, {
+      yPercent: 6,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: imageRef.value,
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: true
+      }
+    })
+  }
+})
+</script>
 
 <style scoped>
 .hero {

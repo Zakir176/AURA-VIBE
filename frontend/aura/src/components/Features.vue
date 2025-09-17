@@ -4,19 +4,19 @@
       <h2 class="section-title text-center mb-12">Why Choose Aura Vibe?</h2>
 
       <v-row>
-        <v-col cols="12" md="4" class="feature-card">
+        <v-col cols="12" md="4" class="feature-card" data-anim="card">
           <v-icon size="48" color="primary" class="feature-icon">mdi-brain</v-icon>
           <h3>AI-Powered Mixing</h3>
           <p>Smart song transitions powered by AI — intros, outros, and vibes matched to the crowd.</p>
         </v-col>
 
-        <v-col cols="12" md="4" class="feature-card">
+        <v-col cols="12" md="4" class="feature-card" data-anim="card">
           <v-icon size="48" color="primary" class="feature-icon">mdi-cellphone-music</v-icon>
           <h3>Live Requests</h3>
           <p>Guests can request songs instantly via Spotify integration.</p>
         </v-col>
 
-        <v-col cols="12" md="4" class="feature-card">
+        <v-col cols="12" md="4" class="feature-card" data-anim="card">
           <v-icon size="48" color="primary" class="feature-icon">mdi-party-popper</v-icon>
           <h3>Seamless Vibes</h3>
           <p>Adaptive mood detection keeps the party flowing without awkward silences.</p>
@@ -25,6 +25,30 @@
     </v-container>
   </section>
 </template>
+
+<script setup>
+import { onMounted } from 'vue'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
+
+onMounted(() => {
+  const cards = document.querySelectorAll('[data-anim="card"]')
+  cards.forEach((el, i) => {
+    gsap.from(el, {
+      opacity: 0,
+      y: 30,
+      duration: 0.7,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: el,
+        start: 'top 85%'
+      }
+    })
+  })
+})
+</script>
 
 <style scoped>
 .features {
