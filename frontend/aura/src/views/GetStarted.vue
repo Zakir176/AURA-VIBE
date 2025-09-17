@@ -64,6 +64,20 @@
         </v-col>
       </v-row>
 
+      <!-- Music Player Integration -->
+      <v-divider class="my-8"></v-divider>
+      
+      <div class="text-center mb-4">
+        <h3 class="text-h6 font-weight-bold mb-2">Music Player</h3>
+        <p class="text-body-2 text-medium-emphasis">Control your Spotify music while collaborating</p>
+      </div>
+
+      <MusicPlayer v-if="accessToken" :access-token="accessToken" />
+      <v-alert v-else type="info" variant="text" class="text-center">
+        <v-icon class="mr-2">mdi-music</v-icon>
+        Music player will appear here once you're authenticated
+      </v-alert>
+
       <v-expand-transition>
         <div v-if="message" class="text-center mt-6 text-medium-emphasis">
           {{ message }}
@@ -71,14 +85,16 @@
       </v-expand-transition>
     </v-card>
   </v-container>
-  
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import MusicPlayer from '@/components/MusicPlayer.vue'
+import { useSpotify } from '@/composables/useSpotify'
 
 const router = useRouter()
+const { getCurrentPlayback } = useSpotify()
 
 const breadcrumbs = [
   { title: 'Home', disabled: false, to: { name: 'Home' } },
@@ -88,6 +104,7 @@ const breadcrumbs = [
 const quickJoinId = ref('')
 const message = ref('')
 const quickJoinFormRef = ref(null)
+const accessToken = ref('')
 
 const rules = {
   required: (v) => !!v || 'Session ID is required',
@@ -108,9 +125,20 @@ const onQuickJoin = () => {
   message.value = ''
   router.push({ name: 'JoinSession', query: { id: quickJoinId.value } })
 }
+
+onMounted(async () => {
+  // Get access token for music player
+  try {
+    const response = await fetch('/api/spotify/token', { credentials: 'include' })
+    if (response.ok) {
+      const data = await response.json()
+      accessToken.value = data.access_token
+    }
+  } catch (error) {
+    console.log('No access token available')
+  }
+})
 </script>
 
 <style scoped>
 </style>
-
-

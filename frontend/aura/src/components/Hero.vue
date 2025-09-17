@@ -12,7 +12,7 @@
             Aura Vibe blends intelligence with design — simple, elegant, fast.
           </p>
 
-          <v-btn size="x-large" class="cta-btn" :to="{ name: 'GetStarted' }">
+          <v-btn size="x-large" class="cta-btn" :to="{ name: 'Login', query: { redirect: '/get-started' } }">
             Get Started →
           </v-btn>
         </v-col>
