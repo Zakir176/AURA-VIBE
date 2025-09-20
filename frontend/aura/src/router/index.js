@@ -4,6 +4,8 @@ import GetStarted from "@/views/GetStarted.vue";
 import SessionCreate from "@/views/SessionCreate.vue";
 import JoinSession from "@/views/JoinSession.vue";
 import Login from "@/views/Login.vue";
+import Landing from "@/views/Landing.vue";
+import Session from "@/views/Session.vue";
 import { isAuthenticated } from "@/utils/auth.js";
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
@@ -15,6 +17,8 @@ const routes = [
   { path: "/get-started", name: "GetStarted", component: GetStarted, meta: { requiresAuth: true } },
   { path: "/create", name: "CreateSession", component: SessionCreate, meta: { requiresAuth: true } },
   { path: "/join", name: "JoinSession", component: JoinSession, meta: { requiresAuth: true } },
+  { path: "/landing", name: "Landing", component: Landing },
+  { path: "/session", name: "Session", component: Session },
 ];
 
 const router = createRouter({
