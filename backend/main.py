@@ -71,7 +71,7 @@ async def create_session(session_name: str = "Aura Vibe Session", db: Session = 
     # Create session
     new_session = DanceSession(
         session_code=session_code,
-        host_id=str(uuid.uuid4()),  # Anonymous host ID for now
+        host_id=str(uuid.uuid4()),  # Anonymous host ID
         session_name=session_name
     )
     
@@ -226,6 +226,25 @@ async def vote_queue_item(session_code: str, item_id: int, db: Session = Depends
     }, session_code)
     
     return {"message": "Vote added", "new_votes": queue_item.votes}
+
+# YouTube Music Search Endpoint (Placeholder)
+@app.get("/api/music/search")
+async def search_music(query: str, limit: int = 10):
+    """Search for music (YouTube/other APIs)"""
+    # TODO: Implement YouTube API search
+    # For now, return mock data
+    return {
+        "results": [
+            {
+                "id": f"mock_{i}",
+                "title": f"{query} result {i}",
+                "artist": "Unknown Artist",
+                "duration": 180,
+                "thumbnail": f"https://picsum.photos/200/200?random={i}"
+            }
+            for i in range(limit)
+        ]
+    }
 
 # WebSocket endpoint for real-time updates
 @app.websocket("/ws/{session_code}")
