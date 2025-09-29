@@ -8,6 +8,7 @@ import string
 import uuid
 from datetime import datetime
 import os
+import requests
 from typing import List, Dict
 
 app = FastAPI(title="Aura Vibe API", version="1.0.0")
@@ -53,6 +54,132 @@ class ConnectionManager:
                     pass
 
 manager = ConnectionManager()
+
+# Music Service Class
+class MusicService:
+    @staticmethod
+    def search_youtube(query: str, limit: int = 10):
+        api_key = os.getenv("YOUTUBE_API_KEY")
+        if not api_key:
+            return {"error": "YouTube API key not configured"}
+        
+        url = "https://www.googleapis.com/youtube/v3/search"
+        params = {
+            "part": "snippet",
+            "q": f"{query} official audio",
+            "type": "video",
+            "videoCategoryId": "10",  # Music category
+            "maxResults": limit,
+            "key": api_key
+        }
+        
+        try:
+            response = requests.get(url, params=params, timeout=10)
+            data = response.json()
+            
+            if "error" in data:
+                return {"error": data["error"]["message"]}
+            
+            results = []
+            for item in data.get("items", []):
+                # Clean up title (remove channel names and extra text)
+                title = item["snippet"]["title"]
+                # Remove common YouTube suffixes
+                for suffix in ["(Official Audio)", "(Official Video)", "(Official Music Video)", "| Official Audio"]:
+                    title = title.replace(suffix, "").strip()
+                
+                results.append({
+                    "id": item["id"]["videoId"],
+                    "title": title,
+                    "artist": item["snippet"]["channelTitle"],
+                    "thumbnail": item["snippet"]["thumbnails"]["medium"]["url"],
+                    "source": "youtube"
+                })
+            
+            return {"results": results}
+            
+        except Exception as e:
+            return {"error": str(e)}
+    
+    @staticmethod
+    def search_deezer(query: str, limit: int = 10):
+        url = "https://api.deezer.com/search"
+        params = {"q": query, "limit": limit}
+        
+        try:
+            response = requests.get(url, params=params, timeout=10)
+            data = response.json()
+            
+            results = []
+            for track in data.get("data", []):
+                results.append({
+                    "id": track["id"],
+                    "title": track["title"],
+                    "artist": track["artist"]["name"],
+                    "album": track["album"]["title"],
+                    "duration": track["duration"],
+                    "preview": track.get("preview"),  # 30-second preview
+                    "thumbnail": track["album"]["cover_medium"],
+                    "source": "deezer"
+                })
+            
+            return {"results": results}
+            
+        except Exception as e:
+            return {"error": str(e)}
+    
+    @staticmethod
+    def get_youtube_video_details(video_id: str):
+        """Get additional details about a YouTube video"""
+        api_key = os.getenv("YOUTUBE_API_KEY")
+        if not api_key:
+            return {"error": "YouTube API key not configured"}
+        
+        url = "https://www.googleapis.com/youtube/v3/videos"
+        params = {
+            "part": "contentDetails,snippet",
+            "id": video_id,
+            "key": api_key
+        }
+        
+        try:
+            response = requests.get(url, params=params, timeout=10)
+            data = response.json()
+            
+            if not data.get("items"):
+                return {"error": "Video not found"}
+            
+            item = data["items"][0]
+            
+            # Parse duration (ISO 8601 format)
+            duration_str = item["contentDetails"]["duration"]
+            duration_seconds = MusicService.parse_duration(duration_str)
+            
+            return {
+                "id": video_id,
+                "title": item["snippet"]["title"],
+                "artist": item["snippet"]["channelTitle"],
+                "duration": duration_seconds,
+                "thumbnail": item["snippet"]["thumbnails"]["medium"]["url"],
+                "description": item["snippet"]["description"]
+            }
+            
+        except Exception as e:
+            return {"error": str(e)}
+    
+    @staticmethod
+    def parse_duration(duration_str: str) -> int:
+        """Convert ISO 8601 duration to seconds"""
+        import re
+        match = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', duration_str)
+        if not match:
+            return 0
+        
+        hours = int(match.group(1)) if match.group(1) else 0
+        minutes = int(match.group(2)) if match.group(2) else 0
+        seconds = int(match.group(3)) if match.group(3) else 0
+        
+        return hours * 3600 + minutes * 60 + seconds
 
 # Utility functions
 def generate_session_code(db: Session) -> str:
@@ -127,14 +254,50 @@ async def get_session_info(session_code: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Session not found")
     
     participants = db.query(Participant).filter(Participant.session_code == session_code).all()
+    queue_items = db.query(QueueItem).filter(
+        QueueItem.session_code == session_code,
+        QueueItem.played == False
+    ).count()
     
     return {
         "session_code": session.session_code,
         "session_name": session.session_name,
         "host_id": session.host_id,
         "participants": [{"username": p.username, "is_host": p.is_host} for p in participants],
+        "queue_length": queue_items,
         "created_at": session.created_at.isoformat()
     }
+
+# Music Search Endpoints
+@app.get("/api/music/search")
+async def search_music(query: str, limit: int = 10):
+    """Search across multiple music services"""
+    if not query or len(query.strip()) < 2:
+        raise HTTPException(status_code=400, detail="Query must be at least 2 characters")
+    
+    # Try YouTube first
+    youtube_results = MusicService.search_youtube(query, limit)
+    
+    # If YouTube fails or has quota issues, fall back to Deezer
+    if "error" in youtube_results:
+        deezer_results = MusicService.search_deezer(query, limit)
+        if "error" not in deezer_results:
+            return deezer_results
+        else:
+            # Both services failed, return YouTube error
+            raise HTTPException(status_code=500, detail=f"Music search failed: {youtube_results['error']}")
+    
+    return youtube_results
+
+@app.get("/api/music/details/{video_id}")
+async def get_music_details(video_id: str):
+    """Get detailed information about a specific track"""
+    details = MusicService.get_youtube_video_details(video_id)
+    
+    if "error" in details:
+        raise HTTPException(status_code=404, detail=details["error"])
+    
+    return details
 
 # Queue Management Endpoints
 @app.post("/api/session/{session_code}/queue/add")
@@ -151,6 +314,13 @@ async def add_to_queue(
     session = db.query(DanceSession).filter(DanceSession.session_code == session_code).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+    
+    # If duration not provided, try to get it from YouTube
+    if not track_duration and track_id.startswith("yt_"):
+        video_id = track_id.replace("yt_", "")
+        details = MusicService.get_youtube_video_details(video_id)
+        if "error" not in details:
+            track_duration = details.get("duration")
     
     new_queue_item = QueueItem(
         session_code=session_code,
@@ -171,6 +341,7 @@ async def add_to_queue(
         "message": "New track added to queue",
         "queue_item": {
             "id": new_queue_item.id,
+            "track_id": track_id,
             "track_title": track_title,
             "track_artist": track_artist,
             "added_by": added_by,
@@ -198,7 +369,8 @@ async def get_queue(session_code: str, db: Session = Depends(get_db)):
                 "track_duration": item.track_duration,
                 "added_by": item.added_by,
                 "votes": item.votes,
-                "is_playing": item.is_playing
+                "is_playing": item.is_playing,
+                "created_at": item.created_at.isoformat()
             }
             for item in queue_items
         ]
@@ -227,24 +399,83 @@ async def vote_queue_item(session_code: str, item_id: int, db: Session = Depends
     
     return {"message": "Vote added", "new_votes": queue_item.votes}
 
-# YouTube Music Search Endpoint (Placeholder)
-@app.get("/api/music/search")
-async def search_music(query: str, limit: int = 10):
-    """Search for music (YouTube/other APIs)"""
-    # TODO: Implement YouTube API search
-    # For now, return mock data
-    return {
-        "results": [
-            {
-                "id": f"mock_{i}",
-                "title": f"{query} result {i}",
-                "artist": "Unknown Artist",
-                "duration": 180,
-                "thumbnail": f"https://picsum.photos/200/200?random={i}"
-            }
-            for i in range(limit)
-        ]
-    }
+@app.post("/api/session/{session_code}/queue/{item_id}/remove")
+async def remove_queue_item(session_code: str, item_id: int, db: Session = Depends(get_db)):
+    """Remove a track from queue (host only)"""
+    queue_item = db.query(QueueItem).filter(
+        QueueItem.id == item_id,
+        QueueItem.session_code == session_code
+    ).first()
+    
+    if not queue_item:
+        raise HTTPException(status_code=404, detail="Queue item not found")
+    
+    db.delete(queue_item)
+    db.commit()
+    
+    # Broadcast removal
+    await manager.broadcast_to_session({
+        "type": "queue_updated",
+        "message": "Track removed from queue",
+        "removed_item_id": item_id
+    }, session_code)
+    
+    return {"message": "Track removed from queue"}
+
+@app.post("/api/session/{session_code}/queue/clear")
+async def clear_queue(session_code: str, db: Session = Depends(get_db)):
+    """Clear all items from queue (host only)"""
+    db.query(QueueItem).filter(QueueItem.session_code == session_code).delete()
+    db.commit()
+    
+    # Broadcast clear
+    await manager.broadcast_to_session({
+        "type": "queue_cleared",
+        "message": "Queue cleared"
+    }, session_code)
+    
+    return {"message": "Queue cleared"}
+
+# Player Control Endpoints
+@app.post("/api/session/{session_code}/player/play/{track_id}")
+async def play_track(session_code: str, track_id: str, db: Session = Depends(get_db)):
+    """Start playing a specific track"""
+    session = db.query(DanceSession).filter(DanceSession.session_code == session_code).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Update session's current track
+    session.current_track_id = track_id
+    db.commit()
+    
+    # Broadcast play command
+    await manager.broadcast_to_session({
+        "type": "play_track",
+        "track_id": track_id,
+        "message": "Now playing"
+    }, session_code)
+    
+    return {"message": "Playing track", "track_id": track_id}
+
+@app.post("/api/session/{session_code}/player/pause")
+async def pause_playback(session_code: str):
+    """Pause playback"""
+    await manager.broadcast_to_session({
+        "type": "pause_playback",
+        "message": "Playback paused"
+    }, session_code)
+    
+    return {"message": "Playback paused"}
+
+@app.post("/api/session/{session_code}/player/resume")
+async def resume_playback(session_code: str):
+    """Resume playback"""
+    await manager.broadcast_to_session({
+        "type": "resume_playback",
+        "message": "Playback resumed"
+    }, session_code)
+    
+    return {"message": "Playback resumed"}
 
 # WebSocket endpoint for real-time updates
 @app.websocket("/ws/{session_code}")
@@ -254,14 +485,40 @@ async def websocket_endpoint(websocket: WebSocket, session_code: str):
         while True:
             data = await websocket.receive_text()
             # Handle incoming WebSocket messages if needed
+            # For now, just echo for testing
+            await websocket.send_json({"type": "echo", "data": data})
     except WebSocketDisconnect:
         manager.disconnect(websocket, session_code)
 
 # Health check
 @app.get("/")
 async def root():
-    return {"message": "Aura Vibe API is running", "version": "1.0.0"}
+    return {
+        "message": "Aura Vibe API is running", 
+        "version": "1.0.0",
+        "music_services": ["YouTube", "Deezer"]
+    }
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+    return {
+        "status": "healthy", 
+        "timestamp": datetime.utcnow().isoformat(),
+        "services": {
+            "youtube": "available" if os.getenv("YOUTUBE_API_KEY") else "not_configured",
+            "deezer": "available"
+        }
+    }
+
+# Development endpoint to test music search
+@app.get("/api/dev/test-search")
+async def test_search(query: str = "drake"):
+    """Test endpoint for music search (remove in production)"""
+    youtube_results = MusicService.search_youtube(query, 5)
+    deezer_results = MusicService.search_deezer(query, 5)
+    
+    return {
+        "youtube": youtube_results,
+        "deezer": deezer_results,
+        "query": query
+    }
