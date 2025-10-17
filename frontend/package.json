@@ -8,13 +8,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.4.0",
-    "vue-router": "^4.2.5",
-    "vuetify": "^3.5.0",
     "@mdi/font": "^7.4.0",
+    "@mdi/js": "^7.4.47",
     "axios": "^1.6.0",
     "uuid": "^9.0.1",
-    "vue-qrcode-reader": "^4.0.0"
+    "vue": "^3.4.0",
+    "vue-qrcode-reader": "^4.0.0",
+    "vue-router": "^4.6.3",
+    "vuetify": "^3.10.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
