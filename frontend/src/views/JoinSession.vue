@@ -22,7 +22,7 @@
               v-model="sessionCode"
               type="text"
               required
-              class="input-field text-center text-lg font-mono"
+              class="input-field text-center text-lg font-mono uppercase"
               placeholder="e.g. ABC123"
               :disabled="loading"
             >
@@ -33,7 +33,7 @@
             :disabled="!sessionCode || loading"
             class="btn-primary w-full py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span v-if="loading">Joining...</span>
+            <span v-if="loading">Joining Session...</span>
             <span v-else>🎧 Join Session</span>
           </button>
         </form>
@@ -55,8 +55,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { sessionAPI } from '@/services/api'
+import { getOrCreateUserId } from '@/utils/uuid'
+import { useSessionStore } from '@/stores/session'
 
 const router = useRouter()
+const sessionStore = useSessionStore()
+
 const sessionCode = ref('')
 const loading = ref(false)
 const error = ref('')
@@ -68,18 +73,18 @@ const joinSession = async () => {
   error.value = ''
   
   try {
-    // TODO: Replace with actual API call
-    console.log('Joining session:', sessionCode.value)
+    const userId = getOrCreateUserId(sessionCode.value)
+    await sessionAPI.joinSession(sessionCode.value, userId)
     
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // Store session info
+    sessionStore.setSession(sessionCode.value, userId)
     
-    // For now, just redirect (we'll add proper validation later)
+    // Redirect to session page
     router.push(`/session/${sessionCode.value}`)
     
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to join session:', err)
-    error.value = 'Failed to join session. Please check the code and try again.'
+    error.value = err.response?.data?.detail || 'Failed to join session. Please check the code and try again.'
   } finally {
     loading.value = false
   }

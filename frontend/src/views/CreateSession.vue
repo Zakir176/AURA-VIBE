@@ -18,7 +18,7 @@
             :disabled="loading"
             class="btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span v-if="loading">Creating...</span>
+            <span v-if="loading">Creating Session...</span>
             <span v-else>🎤 Create Music Session</span>
           </button>
         </div>
@@ -34,10 +34,14 @@
           <div class="text-center mb-4">
             <p class="text-sm text-gray-600 mb-2">Scan QR Code to join:</p>
             <img 
+              v-if="sessionData.qr_code && sessionData.qr_code !== 'mock-base64-qr-code'"
               :src="`data:image/png;base64,${sessionData.qr_code}`" 
               alt="QR Code" 
-              class="mx-auto border rounded-lg shadow-sm"
+              class="mx-auto border rounded-lg shadow-sm w-48 h-48"
             />
+            <div v-else class="w-48 h-48 bg-gray-200 rounded-lg flex items-center justify-center mx-auto">
+              <span class="text-gray-500">QR Code Preview</span>
+            </div>
           </div>
 
           <button 
@@ -59,8 +63,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { sessionAPI } from '@/services/api'
+import { generateUUID } from '@/utils/uuid'
+import { useSessionStore } from '@/stores/session'
 
 const router = useRouter()
+const sessionStore = useSessionStore()
+
 const loading = ref(false)
 const sessionData = ref<any>(null)
 const error = ref('')
@@ -70,21 +79,16 @@ const createSession = async () => {
   error.value = ''
   
   try {
-    // TODO: Replace with actual API call
-    console.log('Creating session...')
+    const hostId = generateUUID()
+    const response = await sessionAPI.createSession(hostId)
+    sessionData.value = response
     
-    // Mock data for now
-    sessionData.value = {
-      session_code: 'ABC123',
-      qr_code: 'mock-base64-qr-code' // This will be real base64 from backend
-    }
+    // Store session info
+    sessionStore.setSession(response.session_code, hostId)
     
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to create session:', err)
-    error.value = 'Failed to create session. Please try again.'
+    error.value = err.response?.data?.detail || 'Failed to create session. Please try again.'
   } finally {
     loading.value = false
   }
