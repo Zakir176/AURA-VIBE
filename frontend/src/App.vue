@@ -1,16 +1,11 @@
+<script setup lang="ts"></script>
+
 <template>
-  <div id="app">
-    <!-- This is where the routed components will render -->
-    <router-view />
-  </div>
+  <h1>You did it!</h1>
+  <p>
+    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
+    documentation
+  </p>
 </template>
 
-<script>
-export default {
-  name: 'App',
-}
-</script>
-
-<style scoped>
-/* Global styles or component-specific styles */
-</style>
+<style scoped></style>
