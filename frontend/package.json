@@ -13,8 +13,8 @@
     "vuetify": "^3.5.0",
     "@mdi/font": "^7.4.0",
     "axios": "^1.6.0",
-    "qrcode-reader-vue3": "^1.0.2",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "vue-qrcode-reader": "^4.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
