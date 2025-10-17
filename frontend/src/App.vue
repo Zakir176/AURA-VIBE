@@ -1,16 +1,8 @@
 <template>
-  <div id="app">
-    <!-- This is where the routed components will render -->
+  <div id="app" class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
     <router-view />
   </div>
 </template>
 
-<script>
-export default {
-  name: 'App',
-}
+<script setup lang="ts">
 </script>
-
-<style scoped>
-/* Global styles or component-specific styles */
-</style>

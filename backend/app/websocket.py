@@ -33,7 +33,6 @@ async def websocket_endpoint(websocket: WebSocket, session_code: str):
     try:
         while True:
             data = await websocket.receive_text()
-            # Broadcast queue updates (e.g., when a song is added)
             await manager.broadcast(session_code, {"message": data})
     except WebSocketDisconnect:
         manager.disconnect(websocket, session_code)

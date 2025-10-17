@@ -1,82 +1,102 @@
 <template>
-  <v-container fluid class="create-session-page fill-height">
-    <v-row align="center" justify="center">
-      <v-col cols="12" md="8" lg="6">
-        <v-card class="mx-auto pa-6 elevation-12" rounded="lg">
-          <v-card-title class="text-h4 text-center mb-4">
-            <v-icon size="40" color="secondary" class="mr-2">mdi-play-circle</v-icon>
-            Create a New Session
-          </v-card-title>
+  <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full">
+      <div class="text-center mb-8">
+        <router-link to="/" class="inline-block mb-6">
+          <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mx-auto">
+            <span class="text-white font-bold text-lg">🎵</span>
+          </div>
+        </router-link>
+        <h1 class="text-3xl font-bold text-gray-900">Create Session</h1>
+        <p class="text-gray-600 mt-2">Start a new music session for your friends to join</p>
+      </div>
 
-          <v-card-text>
-            <!-- Session Creation Form -->
-            <v-form @submit.prevent="handleCreateSession" ref="form">
-              <v-text-field
-                v-model="hostId"
-                label="Host ID"
-                placeholder="e.g., Host-1234"
-                variant="outlined"
-                prepend-inner-icon="mdi-account"
-                :rules="[v => !!v || 'Host ID is required']"
-                class="mb-4"
-                required
-              ></v-text-field>
+      <div class="card p-8">
+        <div class="text-center">
+          <button 
+            @click="createSession"
+            :disabled="loading"
+            class="btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span v-if="loading">Creating Session...</span>
+            <span v-else>🎤 Create Music Session</span>
+          </button>
+        </div>
 
-              <v-btn
-                type="submit"
-                color="primary"
-                size="large"
-                block
-                prepend-icon="mdi-play-circle"
-                :loading="loading"
-              >
-                Create Session
-              </v-btn>
-            </v-form>
+        <div v-if="sessionData" class="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+          <h3 class="text-xl font-semibold text-gray-900 text-center mb-4">Session Created! 🎉</h3>
+          
+          <div class="bg-white rounded-lg p-4 mb-4 border">
+            <p class="text-sm text-gray-600 mb-1">Session Code:</p>
+            <p class="text-2xl font-mono font-bold text-blue-600">{{ sessionData.session_code }}</p>
+          </div>
 
-            <!-- Show the session code and QR code if available -->
-            <v-alert v-if="sessionCode" type="success" variant="tonal" class="mt-4">
-              <div>Session Code: {{ sessionCode }}</div>
-              <div>
-                <img :src="qrCode" alt="QR Code" class="mt-2" />
-              </div>
-            </v-alert>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+          <div class="text-center mb-4">
+            <p class="text-sm text-gray-600 mb-2">Scan QR Code to join:</p>
+            <img 
+              v-if="sessionData.qr_code && sessionData.qr_code !== 'mock-base64-qr-code'"
+              :src="`data:image/png;base64,${sessionData.qr_code}`" 
+              alt="QR Code" 
+              class="mx-auto border rounded-lg shadow-sm w-48 h-48"
+            />
+            <div v-else class="w-48 h-48 bg-gray-200 rounded-lg flex items-center justify-center mx-auto">
+              <span class="text-gray-500">QR Code Preview</span>
+            </div>
+          </div>
+
+          <button 
+            @click="goToSession"
+            class="btn-primary w-full py-3"
+          >
+            Enter Session
+          </button>
+        </div>
+
+        <div v-if="error" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p class="text-red-700 text-sm">{{ error }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { createSession } from '@/services/api'
+import { sessionAPI } from '@/services/api'
+import { generateUUID } from '@/utils/uuid'
+import { useSessionStore } from '@/stores/session'
 
 const router = useRouter()
-const hostId = ref('')
-const sessionCode = ref('')
-const qrCode = ref('')
-const loading = ref(false)
+const sessionStore = useSessionStore()
 
-// Handle session creation and show the session code and QR code
-const handleCreateSession = async () => {
+const loading = ref(false)
+const sessionData = ref<any>(null)
+const error = ref('')
+
+const createSession = async () => {
   loading.value = true
+  error.value = ''
+  
   try {
-    const response = await createSession(hostId.value) // Call the backend API to create session
-    sessionCode.value = response.session_code // Set session code returned from backend
-    qrCode.value = response.qr_code // Set QR code (base64 image)
-  } catch (err) {
-    console.error('Error creating session:', err)
+    const hostId = generateUUID()
+    const response = await sessionAPI.createSession(hostId)
+    sessionData.value = response
+    
+    // Store session info
+    sessionStore.setSession(response.session_code, hostId)
+    
+  } catch (err: any) {
+    console.error('Failed to create session:', err)
+    error.value = err.response?.data?.detail || 'Failed to create session. Please try again.'
   } finally {
     loading.value = false
   }
 }
-</script>
 
-<style scoped>
-.create-session-page {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
+const goToSession = () => {
+  if (sessionData.value?.session_code) {
+    router.push(`/session/${sessionData.value.session_code}`)
+  }
 }
-</style>
+</script>
