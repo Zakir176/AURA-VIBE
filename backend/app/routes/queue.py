@@ -8,12 +8,10 @@ router = APIRouter()
 
 @router.post("/add", response_model=QueueItemOut)
 async def add_to_queue(item: QueueAdd, db: Session = Depends(get_db)):
-    # Verify session exists
     db_session = db.query(Session).filter(Session.session_code == item.session_code).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
     
-    # Add song to queue
     db_item = QueueItem(
         session_code=item.session_code,
         song_title=item.song_title,
