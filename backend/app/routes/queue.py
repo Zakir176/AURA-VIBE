@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.queue import QueueItem, QueueAdd, QueueItemOut
 from app.models.session import Session
+from app.websocket import manager  # Import the WebSocket manager
 
 router = APIRouter()
 
@@ -21,6 +22,17 @@ async def add_to_queue(item: QueueAdd, db: Session = Depends(get_db)):
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
+    
+    # Broadcast queue update
+    await manager.broadcast(
+        item.session_code,
+        {
+            "event": "queue_updated",
+            "song_title": db_item.song_title,
+            "song_url": db_item.song_url,
+            "added_by": db_item.added_by
+        }
+    )
     
     return QueueItemOut(
         song_title=db_item.song_title,

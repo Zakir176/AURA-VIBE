@@ -19,6 +19,19 @@
           </div>
           
           <div class="flex items-center space-x-4">
+            <!-- Connection Status -->
+            <div class="flex items-center space-x-2">
+              <div 
+                :class="[
+                  'w-3 h-3 rounded-full',
+                  isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                ]"
+              ></div>
+              <span class="text-sm text-gray-600">
+                {{ isConnected ? 'Live' : 'Disconnected' }}
+              </span>
+            </div>
+            
             <button 
               @click="copySessionCode"
               class="btn-secondary text-sm py-2 px-4"
@@ -39,9 +52,26 @@
         <!-- Queue Section -->
         <div class="lg:col-span-2">
           <div class="card p-6">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">Music Queue</h2>
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-2xl font-bold text-gray-900">Music Queue</h2>
+              <button 
+                @click="fetchQueue" 
+                :disabled="loading"
+                class="btn-secondary text-sm py-1 px-3 flex items-center space-x-1"
+              >
+                <span>🔄</span>
+                <span>Refresh</span>
+              </button>
+            </div>
             
-            <div v-if="queue.length === 0" class="text-center py-12">
+            <!-- Loading State -->
+            <div v-if="loading" class="text-center py-8">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p class="text-gray-600 mt-2">Loading queue...</p>
+            </div>
+            
+            <!-- Empty State -->
+            <div v-else-if="queue.length === 0" class="text-center py-12">
               <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span class="text-2xl text-gray-400">🎵</span>
               </div>
@@ -49,27 +79,29 @@
               <p class="text-gray-600">Add the first song to get the party started!</p>
             </div>
 
+            <!-- Queue Items -->
             <div v-else class="space-y-3">
               <div 
                 v-for="(song, index) in queue" 
                 :key="index"
-                class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border"
+                class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border hover:bg-white transition-colors duration-200"
               >
-                <div class="flex items-center space-x-4">
-                  <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <div class="flex items-center space-x-4 flex-1 min-w-0">
+                  <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                     <span class="text-blue-600 font-semibold text-sm">{{ index + 1 }}</span>
                   </div>
-                  <div>
-                    <h3 class="font-semibold text-gray-900">{{ song.song_title }}</h3>
-                    <p class="text-sm text-gray-600">Added by {{ song.added_by }}</p>
+                  <div class="min-w-0 flex-1">
+                    <h3 class="font-semibold text-gray-900 truncate">{{ song.song_title }}</h3>
+                    <p class="text-sm text-gray-600 truncate">Added by {{ song.added_by }}</p>
                   </div>
                 </div>
                 <a 
                   :href="song.song_url" 
                   target="_blank"
-                  class="btn-primary text-sm py-1 px-3"
+                  class="btn-primary text-sm py-2 px-3 flex items-center space-x-1 ml-4 flex-shrink-0"
                 >
-                  Play
+                  <span>▶️</span>
+                  <span>Play</span>
                 </a>
               </div>
             </div>
@@ -93,6 +125,7 @@
                     required
                     class="input-field"
                     placeholder="Enter song name"
+                    :disabled="addingSong"
                   >
                 </div>
                 
@@ -107,16 +140,18 @@
                     required
                     class="input-field"
                     placeholder="https://www.youtube.com/watch?v=..."
+                    :disabled="addingSong"
                   >
                 </div>
                 
                 <button 
                   type="submit"
                   :disabled="!songTitle || !songUrl || addingSong"
-                  class="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
-                  <span v-if="addingSong">Adding...</span>
-                  <span v-else>Add to Queue</span>
+                  <span v-if="addingSong" class="animate-spin">⏳</span>
+                  <span v-else>🎵</span>
+                  <span>{{ addingSong ? 'Adding...' : 'Add to Queue' }}</span>
                 </button>
               </div>
             </form>
@@ -127,13 +162,47 @@
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Session Info</h3>
             <div class="space-y-3">
               <div>
-                <p class="text-sm text-gray-600">Session Code</p>
-                <p class="font-mono font-semibold">{{ sessionCode }}</p>
+                <p class="text-sm text-gray-600 mb-1">Session Code</p>
+                <p class="font-mono font-semibold text-lg">{{ sessionCode }}</p>
               </div>
               <div>
-                <p class="text-sm text-gray-600">Your User ID</p>
-                <p class="font-mono text-sm truncate">{{ userId }}</p>
+                <p class="text-sm text-gray-600 mb-1">Your User ID</p>
+                <p class="font-mono text-sm truncate bg-gray-100 p-2 rounded">{{ userId }}</p>
               </div>
+              <div>
+                <p class="text-sm text-gray-600 mb-1">Connection</p>
+                <div class="flex items-center space-x-2">
+                  <div 
+                    :class="[
+                      'w-2 h-2 rounded-full',
+                      isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                    ]"
+                  ></div>
+                  <span class="text-sm">{{ isConnected ? 'Connected to live updates' : 'Disconnected' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="card p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div class="space-y-2">
+              <button 
+                @click="copySessionCode"
+                class="w-full btn-secondary py-2 flex items-center justify-center space-x-2"
+              >
+                <span>📋</span>
+                <span>Copy Session Code</span>
+              </button>
+              <button 
+                @click="fetchQueue" 
+                :disabled="loading"
+                class="w-full btn-secondary py-2 flex items-center justify-center space-x-2 disabled:opacity-50"
+              >
+                <span>🔄</span>
+                <span>Refresh Queue</span>
+              </button>
             </div>
           </div>
         </div>
@@ -143,45 +212,52 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { queueAPI } from '@/services/api'
+import { getOrCreateUserId } from '@/utils/uuid'
+import { useWebSocket } from '@/composables/useWebSocket'
+import { useSessionStore } from '@/stores/session'
 
 const route = useRoute()
+const sessionStore = useSessionStore()
 const sessionCode = route.params.sessionCode as string
 
 const queue = ref<any[]>([])
 const songTitle = ref('')
 const songUrl = ref('')
 const addingSong = ref(false)
-const userId = ref('user-' + Math.random().toString(36).substr(2, 9))
+const loading = ref(false)
+const userId = ref(getOrCreateUserId(sessionCode))
 
-// Mock data for now
-onMounted(() => {
-  // TODO: Replace with actual API calls
-  queue.value = [
-    {
-      song_title: "Bohemian Rhapsody",
-      song_url: "https://www.youtube.com/watch?v=fJ9rUzIMcZQ",
-      added_by: "user-abc123"
-    },
-    {
-      song_title: "Sweet Child O' Mine",
-      song_url: "https://www.youtube.com/watch?v=1w7OgIMMRc4", 
-      added_by: "user-def456"
-    }
-  ]
-})
+// WebSocket integration
+const { isConnected, connect, disconnect } = useWebSocket(sessionCode)
+
+const fetchQueue = async () => {
+  loading.value = true
+  try {
+    const songs = await queueAPI.getQueue(sessionCode)
+    queue.value = songs
+    sessionStore.setQueue(songs)
+  } catch (error) {
+    console.error('Failed to fetch queue:', error)
+    alert('Failed to load queue. Please check your connection.')
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleQueueUpdate = () => {
+  console.log('Queue update received, refreshing...')
+  fetchQueue()
+}
 
 const addSong = async () => {
   if (!songTitle.value || !songUrl.value) return
   
   addingSong.value = true
   try {
-    // TODO: Replace with actual API call
-    console.log('Adding song:', { songTitle: songTitle.value, songUrl: songUrl.value })
-    
-    // Mock adding song
-    queue.value.push({
+    await queueAPI.addSong(sessionCode, {
       song_title: songTitle.value,
       song_url: songUrl.value,
       added_by: userId.value
@@ -191,8 +267,12 @@ const addSong = async () => {
     songTitle.value = ''
     songUrl.value = ''
     
-  } catch (error) {
+    console.log('Song added successfully')
+    // Note: The WebSocket will trigger a queue refresh automatically
+  } catch (error: any) {
     console.error('Failed to add song:', error)
+    const errorMessage = error.response?.data?.detail || 'Failed to add song. Please try again.'
+    alert(errorMessage)
   } finally {
     addingSong.value = false
   }
@@ -200,7 +280,19 @@ const addSong = async () => {
 
 const copySessionCode = () => {
   navigator.clipboard.writeText(sessionCode)
-  // You could add a toast notification here
-  alert('Session code copied to clipboard!')
+  // Simple alert for now - you could replace with a toast notification
+  alert('Session code copied to clipboard! Share it with your friends!')
 }
+
+// Lifecycle
+onMounted(async () => {
+  await fetchQueue()
+  connect()
+  window.addEventListener('queue-updated', handleQueueUpdate)
+})
+
+onUnmounted(() => {
+  disconnect()
+  window.removeEventListener('queue-updated', handleQueueUpdate)
+})
 </script>
