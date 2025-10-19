@@ -5,7 +5,8 @@ from app.models.queue import QueueItem, QueueAdd, QueueItemOut
 from app.models.session import Session
 from app.websocket import manager
 
-router = APIRouter(prefix="/queue", tags=["queue"])
+# Removed duplicate prefix here
+router = APIRouter(tags=["queue"])
 
 @router.post("/add", response_model=QueueItemOut)
 async def add_to_queue(item: QueueAdd, db: Session = Depends(get_db)):

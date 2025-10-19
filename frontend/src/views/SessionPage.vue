@@ -218,9 +218,11 @@ import { queueAPI } from '@/services/api'
 import { getOrCreateUserId } from '@/utils/uuid'
 import { useWebSocket } from '@/composables/useWebSocket'
 import { useSessionStore } from '@/stores/session'
+import { useToast } from '@/composables/useToast'
 
 const route = useRoute()
 const sessionStore = useSessionStore()
+const toast = useToast()
 const sessionCode = route.params.sessionCode as string
 
 const queue = ref<any[]>([])
@@ -239,9 +241,11 @@ const fetchQueue = async () => {
     const songs = await queueAPI.getQueue(sessionCode)
     queue.value = songs
     sessionStore.setQueue(songs)
-  } catch (error) {
+    toast.success('Queue Updated', 'Latest songs loaded successfully')
+  } catch (error: any) {
     console.error('Failed to fetch queue:', error)
-    alert('Failed to load queue. Please check your connection.')
+    const errorMessage = error.response?.data?.detail || 'Failed to load queue. Please check your connection.'
+    toast.error('Queue Load Failed', errorMessage)
   } finally {
     loading.value = false
   }
@@ -267,12 +271,13 @@ const addSong = async () => {
     songTitle.value = ''
     songUrl.value = ''
     
+    toast.success('Song Added!', `"${songTitle.value}" added to queue`)
     console.log('Song added successfully')
     // Note: The WebSocket will trigger a queue refresh automatically
   } catch (error: any) {
     console.error('Failed to add song:', error)
     const errorMessage = error.response?.data?.detail || 'Failed to add song. Please try again.'
-    alert(errorMessage)
+    toast.error('Add Song Failed', errorMessage)
   } finally {
     addingSong.value = false
   }
@@ -280,8 +285,7 @@ const addSong = async () => {
 
 const copySessionCode = () => {
   navigator.clipboard.writeText(sessionCode)
-  // Simple alert for now - you could replace with a toast notification
-  alert('Session code copied to clipboard! Share it with your friends!')
+  toast.success('Copied!', 'Session code copied to clipboard')
 }
 
 // Lifecycle
