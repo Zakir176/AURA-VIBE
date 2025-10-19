@@ -27,7 +27,7 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-@router.websocket("/{session_code}")
+@router.websocket("/ws/{session_code}")  # <--- MATCH THIS TO FRONTEND
 async def websocket_endpoint(websocket: WebSocket, session_code: str):
     await manager.connect(websocket, session_code)
     try:
