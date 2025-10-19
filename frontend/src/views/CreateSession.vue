@@ -66,9 +66,11 @@ import { useRouter } from 'vue-router'
 import { sessionAPI } from '@/services/api'
 import { generateUUID } from '@/utils/uuid'
 import { useSessionStore } from '@/stores/session'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const sessionStore = useSessionStore()
+const toast = useToast()
 
 const loading = ref(false)
 const sessionData = ref<any>(null)
@@ -86,9 +88,15 @@ const createSession = async () => {
     // Store session info
     sessionStore.setSession(response.session_code, hostId)
     
+    toast.success('Session Created!', `Share code: ${response.session_code}`, {
+      duration: 10000,
+    })
+    
   } catch (err: any) {
     console.error('Failed to create session:', err)
-    error.value = err.response?.data?.detail || 'Failed to create session. Please try again.'
+    const errorMessage = err.response?.data?.detail || 'Failed to create session. Please try again.'
+    error.value = errorMessage
+    toast.error('Session Creation Failed', errorMessage)
   } finally {
     loading.value = false
   }

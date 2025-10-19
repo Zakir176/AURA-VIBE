@@ -58,16 +58,21 @@ import { useRouter } from 'vue-router'
 import { sessionAPI } from '@/services/api'
 import { getOrCreateUserId } from '@/utils/uuid'
 import { useSessionStore } from '@/stores/session'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const sessionStore = useSessionStore()
+const toast = useToast()
 
 const sessionCode = ref('')
 const loading = ref(false)
 const error = ref('')
 
 const joinSession = async () => {
-  if (!sessionCode.value) return
+  if (!sessionCode.value) {
+    toast.warning('Invalid Code', 'Please enter a valid session code')
+    return
+  }
   
   loading.value = true
   error.value = ''
@@ -79,12 +84,16 @@ const joinSession = async () => {
     // Store session info
     sessionStore.setSession(sessionCode.value, userId)
     
+    toast.success('Session Joined!', `You've joined session ${sessionCode.value}`)
+    
     // Redirect to session page
     router.push(`/session/${sessionCode.value}`)
     
   } catch (err: any) {
     console.error('Failed to join session:', err)
-    error.value = err.response?.data?.detail || 'Failed to join session. Please check the code and try again.'
+    const errorMessage = err.response?.data?.detail || 'Failed to join session. Please check the code and try again.'
+    error.value = errorMessage
+    toast.error('Join Failed', errorMessage)
   } finally {
     loading.value = false
   }
