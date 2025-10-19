@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-router = APIRouter(prefix="/youtube", tags=["youtube"])
+router = APIRouter(tags=["youtube"])
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 
 @router.get("/search")

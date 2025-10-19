@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.queue import QueueItem, QueueAdd, QueueItemOut
 from app.models.session import Session
+from app.models.user_vote import UserVote
 from app.websocket import manager
 
-# Removed duplicate prefix here
 router = APIRouter(tags=["queue"])
 
 @router.post("/add", response_model=QueueItemOut)
@@ -29,6 +29,7 @@ async def add_to_queue(item: QueueAdd, db: Session = Depends(get_db)):
         item.session_code,
         {
             "event": "queue_updated",
+            "queue_id": db_item.id,
             "song_title": db_item.song_title,
             "song_url": db_item.song_url,
             "added_by": db_item.added_by,
@@ -37,6 +38,7 @@ async def add_to_queue(item: QueueAdd, db: Session = Depends(get_db)):
     )
     
     return QueueItemOut(
+        queue_id=db_item.id,
         song_title=db_item.song_title,
         song_url=db_item.song_url,
         added_by=db_item.added_by,
@@ -51,7 +53,13 @@ async def list_queue(session_code: str, db: Session = Depends(get_db)):
     
     items = db.query(QueueItem).filter(QueueItem.session_code == session_code).all()
     return [
-        QueueItemOut(song_title=item.song_title, song_url=item.song_url, added_by=item.added_by, votes=item.votes)
+        QueueItemOut(
+            queue_id=item.id,
+            song_title=item.song_title,
+            song_url=item.song_url,
+            added_by=item.added_by,
+            votes=item.votes
+        )
         for item in items
     ]
 
@@ -70,6 +78,22 @@ async def vote_song(vote_data: dict, db: Session = Depends(get_db)):
     if vote_data["vote"] not in [-1, 1]:
         raise HTTPException(status_code=400, detail="Vote must be 1 or -1")
     
+    # Check for existing vote
+    existing_vote = db.query(UserVote).filter(
+        UserVote.queue_id == vote_data["queue_id"],
+        UserVote.user_id == vote_data["user_id"]
+    ).first()
+    if existing_vote:
+        raise HTTPException(status_code=400, detail="User has already voted on this song")
+    
+    # Record vote
+    user_vote = UserVote(
+        session_code=vote_data["session_code"],
+        queue_id=vote_data["queue_id"],
+        user_id=vote_data["user_id"],
+        vote=vote_data["vote"]
+    )
+    db.add(user_vote)
     item.votes = (item.votes or 0) + vote_data["vote"]
     db.commit()
     
