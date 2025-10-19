@@ -10,7 +10,7 @@ class QueueItem(Base):
     song_title = Column(String)
     song_url = Column(String)
     added_by = Column(String)
-    votes = Column(Integer, default=0)  # Added votes column
+    votes = Column(Integer, default=0)
 
 class QueueAdd(BaseModel):
     session_code: str
@@ -19,10 +19,11 @@ class QueueAdd(BaseModel):
     added_by: str
 
 class QueueItemOut(BaseModel):
+    queue_id: int
     song_title: str
     song_url: str
     added_by: str
-    votes: int  # Include votes in output
+    votes: int
 
     class Config:
         orm_mode = True
