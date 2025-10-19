@@ -146,7 +146,7 @@ const resumeToast = (id: string) => {
 const startProgressTimer = (id: string, duration: number, startProgress: number = 100) => {
   const startTime = Date.now();
   const totalTime = (duration * startProgress) / 100;
-  const interval = 50; // Update every 50ms for smooth animation
+  const interval = 50;
 
   progress.value[id] = startProgress;
 
@@ -161,7 +161,6 @@ const startProgressTimer = (id: string, duration: number, startProgress: number 
   }, interval);
 };
 
-// Start progress timers for new toasts
 onMounted(() => {
   toasts.value.forEach(toast => {
     if (toast.duration && toast.duration > 0) {
