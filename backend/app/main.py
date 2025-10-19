@@ -1,27 +1,25 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import session, queue
-from app.websocket import router as websocket_router
+from app.routes import session, queue, youtube
+from app.websocket import router as ws_router
 from app.database import Base, engine
 
-app = FastAPI(title="Aura Vibe API")
 
-# Add CORS middleware - THIS IS WHAT'S MISSING
+app = FastAPI()
+
+# Add CORS middleware for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",  # Vite dev server
-        "http://127.0.0.1:5173",  # Alternative localhost
-        "http://localhost:3000",  # React dev server (optional)
-    ],
+    allow_origins=["http://localhost:5173"],  # Frontend URL
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods including OPTIONS
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-app.include_router(session.router, prefix="/session", tags=["session"])
-app.include_router(queue.router, prefix="/queue", tags=["queue"])
-app.include_router(websocket_router, prefix="/ws", tags=["websocket"])
+app.include_router(session.router, prefix="/session")
+app.include_router(queue.router, prefix="/queue")
+app.include_router(youtube.router)
+app.include_router(ws_router)
 
 @app.get("/")
 async def root():
