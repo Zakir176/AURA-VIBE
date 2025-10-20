@@ -1,110 +1,128 @@
-import { ref, onUnmounted } from 'vue'
-
-export interface WebSocketMessage {
-  type: string
-  data?: any
-}
+// src/composables/useWebSocket.ts
+import { ref, onUnmounted } from 'vue';
+import { useToast } from './useToast';
 
 export function useWebSocket(sessionCode: string) {
-  const messages = ref<WebSocketMessage[]>([])
-  const isConnected = ref(false)
-  const error = ref<string | null>(null)
+  const isConnected = ref(false);
+  const ws = ref<WebSocket | null>(null);
+  const reconnectAttempts = ref(0);
+  const maxReconnectAttempts = 5;
+  const reconnectInterval = ref<number | null>(null);
   
-  let ws: WebSocket | null = null
-  let reconnectAttempts = 0
-  const maxReconnectAttempts = 5
+  const toast = useToast();
 
-  const connect = (): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      if (!sessionCode) {
-        error.value = 'Session code is required'
-        reject(new Error('Session code is required'))
-        return
+  const connect = () => {
+    try {
+      // Close existing connection
+      if (ws.value) {
+        ws.value.close();
       }
 
-      try {
-        ws = new WebSocket(`ws://localhost:8000/ws/${sessionCode}`)
-        
-        ws.onopen = () => {
-          console.log('✅ WebSocket connected for session:', sessionCode)
-          isConnected.value = true
-          error.value = null
-          reconnectAttempts = 0
-          resolve()
-        }
-        
-        ws.onmessage = (event) => {
-          try {
-            const message: WebSocketMessage = JSON.parse(event.data)
-            messages.value.push(message)
-            
-            // Emit custom event for specific message types
-            if (message.type === 'queue_updated') {
-              window.dispatchEvent(new CustomEvent('queue-updated', { 
-                detail: { sessionCode } 
-              }))
-            }
-            
-            console.log('📨 WebSocket message:', message)
-          } catch (err) {
-            console.error('❌ Error parsing WebSocket message:', err)
-          }
-        }
-        
-        ws.onclose = (event) => {
-          console.log('🔌 WebSocket disconnected:', event.code, event.reason)
-          isConnected.value = false
+      // Create new WebSocket connection
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//localhost:8000/ws/${sessionCode}`;
+      
+      console.log(`🔌 Connecting to WebSocket: ${wsUrl}`);
+      ws.value = new WebSocket(wsUrl);
+
+      ws.value.onopen = () => {
+        console.log('✅ WebSocket connected');
+        isConnected.value = true;
+        reconnectAttempts.value = 0;
+      };
+
+      ws.value.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log('📨 WebSocket message received:', data);
           
-          // Attempt reconnect if not a normal closure
-          if (event.code !== 1000 && reconnectAttempts < maxReconnectAttempts) {
-            setTimeout(() => {
-              reconnectAttempts++
-              console.log(`🔄 Reconnecting... Attempt ${reconnectAttempts}`)
-              connect()
-            }, 2000 * reconnectAttempts)
+          // Handle different message types
+          if (data.type === 'queue_updated') {
+            // Dispatch custom event for queue updates
+            window.dispatchEvent(new CustomEvent('queue-updated', { 
+              detail: data 
+            }));
+          } else if (data.type === 'user_joined') {
+            toast.info('User Joined', `${data.username || 'A user'} joined the session`);
+          } else if (data.type === 'song_added') {
+            toast.success('Song Added', `"${data.song_title}" was added to the queue`);
           }
+        } catch (error) {
+          console.error('❌ Error parsing WebSocket message:', error);
         }
+      };
+
+      ws.value.onclose = (event) => {
+        console.log(`🔌 WebSocket disconnected: ${event.code}`);
+        isConnected.value = false;
         
-        ws.onerror = (event) => {
-          console.error('❌ WebSocket error:', event)
-          error.value = 'WebSocket connection failed'
-          reject(new Error('WebSocket connection failed'))
+        // Only attempt reconnect if it wasn't a normal closure
+        if (event.code !== 1000 && reconnectAttempts.value < maxReconnectAttempts) {
+          attemptReconnect();
         }
-        
-      } catch (err) {
-        console.error('❌ Failed to create WebSocket:', err)
-        error.value = 'Failed to create WebSocket connection'
-        reject(err)
-      }
-    })
-  }
+      };
+
+      ws.value.onerror = (error) => {
+        console.error('❌ WebSocket error:', error);
+        isConnected.value = false;
+        toast.error('Connection Error', 'Failed to connect to live updates');
+      };
+
+    } catch (error) {
+      console.error('❌ WebSocket connection failed:', error);
+      isConnected.value = false;
+    }
+  };
+
+  const attemptReconnect = () => {
+    if (reconnectAttempts.value < maxReconnectAttempts) {
+      reconnectAttempts.value++;
+      const delay = Math.min(1000 * reconnectAttempts.value, 10000); // Exponential backoff max 10s
+      
+      console.log(`🔄 Reconnecting... Attempt ${reconnectAttempts.value} in ${delay}ms`);
+      
+      reconnectInterval.value = window.setTimeout(() => {
+        connect();
+      }, delay);
+    } else {
+      console.log('❌ Max reconnection attempts reached');
+      toast.warning('Connection Lost', 'Live updates disabled. Refresh to reconnect.');
+    }
+  };
 
   const disconnect = () => {
-    if (ws) {
-      ws.close(1000, 'Manual disconnect')
-      ws = null
+    if (reconnectInterval.value) {
+      clearTimeout(reconnectInterval.value);
+      reconnectInterval.value = null;
     }
-    isConnected.value = false
-  }
+    
+    if (ws.value) {
+      ws.value.close(1000, 'Normal closure');
+      ws.value = null;
+    }
+    
+    isConnected.value = false;
+    console.log('🔌 WebSocket manually disconnected');
+  };
 
-  const sendMessage = (message: WebSocketMessage) => {
-    if (ws && isConnected.value) {
-      ws.send(JSON.stringify(message))
-    } else {
-      console.error('❌ WebSocket not connected')
+  const sendMessage = (message: any) => {
+    if (ws.value && isConnected.value) {
+      try {
+        ws.value.send(JSON.stringify(message));
+      } catch (error) {
+        console.error('❌ Error sending WebSocket message:', error);
+      }
     }
-  }
+  };
 
   onUnmounted(() => {
-    disconnect()
-  })
+    disconnect();
+  });
 
   return {
-    messages,
     isConnected,
-    error,
     connect,
     disconnect,
     sendMessage
-  }
+  };
 }
