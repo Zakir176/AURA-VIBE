@@ -31,18 +31,28 @@
             <p class="text-2xl font-mono font-bold text-blue-600">{{ sessionData.session_code }}</p>
           </div>
 
-          <div class="text-center mb-4">
-            <p class="text-sm text-gray-600 mb-2">Scan QR Code to join:</p>
-            <img 
-              v-if="sessionData.qr_code && sessionData.qr_code !== 'mock-base64-qr-code'"
-              :src="`data:image/png;base64,${sessionData.qr_code}`" 
-              alt="QR Code" 
-              class="mx-auto border rounded-lg shadow-sm w-48 h-48"
-            />
-            <div v-else class="w-48 h-48 bg-gray-200 rounded-lg flex items-center justify-center mx-auto">
-              <span class="text-gray-500">QR Code Preview</span>
-            </div>
-          </div>
+<!-- In CreateSession.vue - Update the QR code section -->
+<div class="text-center mb-4">
+  <p class="text-sm text-gray-600 mb-2">Scan QR Code to join:</p>
+  
+  <!-- Enhanced QR Code Display -->
+  <div class="bg-white p-4 rounded-lg border border-gray-200 inline-block">
+    <div v-if="sessionData?.qr_code_data" class="mb-2">
+      <img 
+        :src="sessionData.qr_code_data" 
+        alt="QR Code" 
+        class="mx-auto border rounded-lg w-48 h-48"
+      />
+    </div>
+    <div v-else class="w-48 h-48 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+      <span class="text-gray-500 text-sm">Generating QR Code...</span>
+    </div>
+    
+    <p class="text-xs text-gray-500 mt-2">
+      Points to: {{ getSessionUrl() }}
+    </p>
+  </div>
+</div>
 
           <button 
             @click="goToSession"
@@ -106,5 +116,13 @@ const goToSession = () => {
   if (sessionData.value?.session_code) {
     router.push(`/session/${sessionData.value.session_code}`)
   }
+}
+
+// In CreateSession.vue script - Add this method
+const getSessionUrl = () => {
+  if (sessionData.value?.session_code) {
+    return `${window.location.origin}/session/${sessionData.value.session_code}`
+  }
+  return ''
 }
 </script>
