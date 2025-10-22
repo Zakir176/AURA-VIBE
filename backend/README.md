@@ -1,20 +1,24 @@
 # Aura Vibe Backend
-
-The backend for the Aura Vibe collaborative DJ platform, part of a monorepo at D:\code\GitHub\Personal\AURA-VIBE. This FastAPI-based backend handles session creation, user joining, queue management, and real-time updates via WebSocket for a shared music queue.
-
-## Project Overview
-- **Goal**: Enable users to join a session via QR code or session code to add songs to a shared queue, with a host playing music (YouTube API planned for MVP).
-- **Tech Stack**:
-  - **Backend**: FastAPI, SQLite (dev), WebSocket, Python 3.8+.
-  - **Frontend** (in progress): Vue 3, Vuetify, to be integrated in ../frontend.
-- **Status**: All endpoints and WebSocket are tested and functional.
-
-## Endpoints
-- **POST /session/create**: Creates a session. Input: {"host_id": "<uuid>"}. Output: {"session_code": "<8-char-code>", "qr_code": "<base64-png>"}.
-- **POST /session/join**: Joins a session. Input: {"session_code": "<code>", "user_id": "<uuid>"}. Output: {"message": "..."}.
-- **POST /queue/add**: Adds a song. Input: {"session_code": "<code>", "song_title": "<title>", "song_url": "<youtube-url>", "added_by": "<user_id>"}. Output: {"song_title": "<title>", "song_url": "<url>", "added_by": "<user_id>"}.
-- **GET /queue/list/<session_code>**: Lists queue. Output: [{"song_title": "<title>", "song_url": "<url>", "added_by": "<user_id>"}, ...].
-- **WebSocket /ws/<session_code>**: Broadcasts {"event": "queue_updated", "song_title": "<title>", "song_url": "<url>", "added_by": "<user_id>"} on queue additions.
+>>
+>> Backend for the Aura Vibe collaborative DJ platform in `D:\code\GitHub\Personal\AURA-VIBE`. Handles session creation, QR code generation/scanning, queue management, voting, playback, and real-time updates via WebSocket.
+>>
+>> ## Project Overview
+>> - **Goal**: Users join sessions via QR code/session code to add/vote/play songs (YouTube API for MVP).
+>> - **Tech Stack**: FastAPI, SQLite (dev), WebSocket, Python 3.8+.
+>> - **Status**: All endpoints and WebSocket tested and working.
+>>
+>> ## Endpoints
+>> | Method | Endpoint                     | Description                     |
+>> |--------|------------------------------|---------------------------------|
+>> | POST   | `/session/create`            | Create session, returns `session_code`, `qr_code`. |
+>> | POST   | `/session/join`              | Join session with `session_code`, `user_id`. |
+>> | POST   | `/session/scan`              | Scan QR code image, returns `session_code`. |
+>> | POST   | `/queue/add`                 | Add song, broadcasts `queue_updated`. |
+>> | GET    | `/queue/list/{session_code}` | List queue items. |
+>> | POST   | `/queue/vote`                | Vote on song, prevents duplicates, broadcasts `vote_updated`. |
+>> | POST   | `/queue/play`                | Mark song as played (host only), broadcasts `song_played`. |
+>> | GET    | `/youtube/search`            | Search YouTube videos (requires API key). |
+>> | WS     | `/ws/{session_code}`         | WebSocket for `queue_updated`, `vote_updated`, `song_played` events. |
 
 ## Setup
 1. **Navigate to the backend directory**:
