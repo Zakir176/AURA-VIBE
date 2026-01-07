@@ -272,7 +272,7 @@ const handleQueueUpdate = () => {
 
 const addSong = async () => {
   if (!songTitle.value || !songUrl.value) return
-  
+
   addingSong.value = true
   try {
     await queueAPI.addSong(sessionCode, {
