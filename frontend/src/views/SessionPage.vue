@@ -112,6 +112,7 @@
         <div class="space-y-6">
           <div class="card p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Add Song</h3>
+            <SongSearchBar @select-song="onSongSelected" class="mb-4" />
             <form @submit.prevent="addSong">
               <div class="space-y-4">
                 <div>
@@ -219,6 +220,7 @@ import { getOrCreateUserId } from '@/utils/uuid'
 import { useWebSocket } from '@/composables/useWebSocket'
 import { useSessionStore } from '@/stores/session'
 import { useToast } from '@/composables/useToast'
+import SongSearchBar from '@/components/SongSearchBar.vue'
 
 const route = useRoute()
 const sessionStore = useSessionStore()
@@ -230,7 +232,7 @@ const songTitle = ref('')
 const songUrl = ref('')
 const addingSong = ref(false)
 const loading = ref(false)
-const userId = ref(getOrCreateUserId(sessionCode))
+const userId = ref(getOrCreateUserId())
 
 // WebSocket integration
 const { isConnected, connect, disconnect } = useWebSocket(sessionCode)
@@ -286,6 +288,11 @@ const addSong = async () => {
 const copySessionCode = () => {
   navigator.clipboard.writeText(sessionCode)
   toast.success('Copied!', 'Session code copied to clipboard')
+}
+
+const onSongSelected = (song: { title: string, url: string }) => {
+  songTitle.value = song.title
+  songUrl.value = song.url
 }
 
 // Lifecycle
