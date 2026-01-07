@@ -1,69 +1,92 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full">
-      <div class="text-center mb-8">
-        <router-link to="/" class="inline-block mb-6">
-          <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mx-auto">
-            <span class="text-white font-bold text-lg">🎵</span>
-          </div>
-        </router-link>
-        <h1 class="text-3xl font-bold text-gray-900">Create Session</h1>
-        <p class="text-gray-600 mt-2">Start a new music session for your friends to join</p>
-      </div>
+  <div class="min-h-screen bg-gray-50 font-sans text-gray-800">
+    <!-- Header -->
+    <header class="flex items-center justify-between px-4 py-6 bg-white border-b border-gray-200 shadow-sm fixed w-full z-10">
+      <router-link to="/" class="text-gray-600 hover:text-gray-800 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+      </router-link>
+      <h1 class="text-xl font-semibold">Create Session</h1>
+      <div class="w-6 h-6"></div> <!-- Spacer to balance header -->
+    </header>
 
-      <div class="card p-8">
-        <div class="text-center">
-          <button 
-            @click="createSession"
-            :disabled="loading"
-            class="btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+    <!-- Main Content -->
+    <main class="pt-24 pb-4">
+      <div class="max-w-md mx-auto px-4">
+        <!-- Name Your Vibe -->
+        <div class="mb-8">
+          <label for="session-name" class="block text-sm font-medium text-gray-500 mb-2 uppercase tracking-wide">Name Your Vibe</label>
+          <input
+            id="session-name"
+            type="text"
+            v-model="sessionName"
+            placeholder="e.g. Chill Friday Mix"
+            class="w-full px-5 py-3 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent text-lg placeholder-gray-400"
           >
-            <span v-if="loading">Creating Session...</span>
-            <span v-else>🎤 Create Music Session</span>
-          </button>
         </div>
 
-        <div v-if="sessionData" class="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
-          <h3 class="text-xl font-semibold text-gray-900 text-center mb-4">Session Created! 🎉</h3>
+        <!-- Duration -->
+        <div class="mb-8">
+          <label class="block text-sm font-medium text-gray-500 mb-2 uppercase tracking-wide">Duration</label>
+          <div class="flex bg-gray-200 rounded-full p-1 space-x-1">
+            <button
+              v-for="durationOpt in durationOptions"
+              :key="durationOpt.value"
+              @click="sessionDuration = durationOpt.value"
+              :class="{
+                'bg-white text-blue-600 shadow-md': sessionDuration === durationOpt.value,
+                'text-gray-600': sessionDuration !== durationOpt.value
+              }"
+              class="flex-1 py-2 px-4 rounded-full text-center font-medium transition-all duration-200"
+            >
+              {{ durationOpt.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- QR Code & Join Code Display -->
+        <div v-if="sessionData" class="bg-white rounded-3xl shadow-lg p-6 mb-8 text-center border border-gray-200">
+          <p class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">Join Code</p>
+          <div v-if="sessionData?.qr_code" class="mb-6">
+            <img 
+              :src="`data:image/png;base64,${sessionData.qr_code}`" 
+              alt="QR Code" 
+              class="mx-auto border-4 border-white shadow-md rounded-xl w-48 h-48"
+            />
+          </div>
+          <div v-else class="w-48 h-48 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-6">
+            <span class="text-gray-500 text-sm">Generating QR Code...</span>
+          </div>
           
-          <div class="bg-white rounded-lg p-4 mb-4 border">
-            <p class="text-sm text-gray-600 mb-1">Session Code:</p>
-            <p class="text-2xl font-mono font-bold text-blue-600">{{ sessionData.session_code }}</p>
+          <div class="flex items-center justify-center space-x-3 mb-4">
+            <p class="text-3xl font-extrabold text-blue-600">{{ sessionData.session_code }}</p>
+            <button @click="copyCode" class="text-gray-400 hover:text-blue-500 transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v2M8 7h12"></path></svg>
+            </button>
           </div>
-
-<div class="text-center mb-4">
-            <p class="text-sm text-gray-600 mb-2">Scan QR Code to join:</p>
-
-            <!-- Enhanced QR Code Display -->
-            <div class="bg-white p-4 rounded-lg border border-gray-200 inline-block">
-              <div v-if="sessionData?.qr_code" class="mb-2">
-                <img 
-                  :src="`data:image/png;base64,${sessionData.qr_code}`" 
-                  alt="QR Code" 
-                  class="mx-auto border rounded-lg w-48 h-48"
-                />
-              </div>
-              <div v-else class="w-48 h-48 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                <span class="text-gray-500 text-sm">Generating QR Code...</span>
-              </div>
-              
-              <p class="text-xs text-gray-500 mt-2">
-                Points to: {{ getSessionUrl() }}
-              </p>
-            </div>
-          </div>
-
-          <button 
-            @click="goToSession"
-            class="btn-primary w-full py-3"
-          >
-            Enter Session
-          </button>
+          <p class="text-gray-500 text-sm">Share this code or let friends scan to join the queue.</p>
         </div>
 
-        <div v-if="error" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <!-- Error Message -->
+        <div v-if="error" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-center">
           <p class="text-red-700 text-sm">{{ error }}</p>
         </div>
+      </div>
+    </main>
+
+    <!-- Fixed Bottom Button -->
+    <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-md">
+      <div class="max-w-md mx-auto">
+        <button 
+          @click="startSession"
+          :disabled="loading"
+          class="w-full bg-blue-600 text-white font-bold py-4 px-8 rounded-full text-xl flex items-center justify-center space-x-3 hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span v-if="loading">Starting Session...</span>
+          <span v-else>
+            <span>Start Session</span>
+            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </span>
+        </button>
       </div>
     </div>
   </div>
@@ -84,6 +107,15 @@ const toast = useToast()
 const loading = ref(false)
 const sessionData = ref<any>(null)
 const error = ref('')
+const sessionName = ref('')
+const sessionDuration = ref('2hrs') // Default to 2 hours
+
+const durationOptions = [
+  { label: '1 hr', value: '1hr' },
+  { label: '2 hrs', value: '2hrs' },
+  { label: '4 hrs', value: '4hrs' },
+  { label: '∞', value: 'infinity' },
+]
 
 const createSession = async () => {
   loading.value = true
@@ -91,6 +123,8 @@ const createSession = async () => {
   
   try {
     const hostId = generateUUID()
+    // For now, sessionName and sessionDuration are not sent to the API.
+    // This would require backend changes to support these parameters.
     const response = await sessionAPI.createSession(hostId)
     sessionData.value = response
     
@@ -111,13 +145,26 @@ const createSession = async () => {
   }
 }
 
-const goToSession = () => {
-  if (sessionData.value?.session_code) {
+const startSession = () => {
+  if (!sessionData.value) {
+    createSession(); // Create session if not already created
+  } else {
     router.push(`/session/${sessionData.value.session_code}`)
   }
 }
 
-// In CreateSession.vue script - Add this method
+const copyCode = async () => {
+  if (sessionData.value?.session_code) {
+    try {
+      await navigator.clipboard.writeText(sessionData.value.session_code);
+      toast.info('Copied!', 'Session code copied to clipboard.', { duration: 3000 });
+    } catch (err) {
+      console.error('Failed to copy session code:', err);
+      toast.error('Copy Failed', 'Could not copy session code to clipboard.');
+    }
+  }
+}
+
 const getSessionUrl = () => {
   if (sessionData.value?.session_code) {
     return `${window.location.origin}/session/${sessionData.value.session_code}`

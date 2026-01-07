@@ -1,227 +1,114 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gray-50 font-sans text-gray-800">
     <!-- Header -->
-    <div class="bg-white shadow-sm border-b border-gray-200">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center space-x-4">
-            <router-link to="/" class="flex items-center space-x-3 text-lg font-semibold text-gray-900">
-              <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span class="text-white text-sm">🎵</span>
-              </div>
-              <span>AuraVibe</span>
-            </router-link>
-            <div class="h-6 w-px bg-gray-300"></div>
-            <div>
-              <p class="text-sm text-gray-600">Session</p>
-              <p class="font-mono font-semibold text-gray-900">{{ sessionCode }}</p>
-            </div>
-          </div>
-          
-          <div class="flex items-center space-x-4">
-            <!-- Connection Status -->
-            <div class="flex items-center space-x-2">
-              <div 
-                :class="[
-                  'w-3 h-3 rounded-full',
-                  isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                ]"
-              ></div>
-              <span class="text-sm text-gray-600">
-                {{ isConnected ? 'Live' : 'Disconnected' }}
-              </span>
-            </div>
-            
-            <button 
-              @click="copySessionCode"
-              class="btn-secondary text-sm py-2 px-4"
-            >
-              Copy Code
-            </button>
-            <router-link to="/" class="text-gray-600 hover:text-gray-900 text-sm font-medium">
-              Leave
-            </router-link>
-          </div>
+    <header class="flex items-center justify-between px-4 py-5 bg-white border-b border-gray-200 shadow-sm fixed w-full top-0 z-10">
+      <router-link to="/" class="text-gray-600 hover:text-gray-800 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+      </router-link>
+      <div class="text-center">
+        <h1 class="text-lg font-semibold flex items-center">
+          Room #{{ sessionCode }}
+          <button @click="copySessionCode" class="ml-2 text-gray-400 hover:text-blue-500">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v2M8 7h12"></path></svg>
+          </button>
+        </h1>
+        <div class="flex items-center justify-center space-x-1.5 text-xs text-green-600 font-bold">
+          <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+          <span>Live Session</span>
         </div>
       </div>
-    </div>
+      <button class="bg-gray-100 rounded-full px-4 py-2 text-sm font-semibold flex items-center space-x-2">
+        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+        <span>4</span>
+      </button>
+    </header>
 
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <YouTubePlayer ref="player" v-if="currentVideoId" :video-id="currentVideoId" class="mb-6" />
-      <div v-if="isHost" class="card p-4 mb-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Host Controls</h3>
-        <div class="flex space-x-2">
-          <button @click="hostPlay" class="btn-secondary py-2 px-4">Play</button>
-          <button @click="hostPause" class="btn-secondary py-2 px-4">Pause</button>
+    <main class="pt-24 pb-28">
+      <div class="max-w-md mx-auto px-4">
+        <!-- Currently Playing -->
+        <div class="text-center mb-8">
+          <div class="relative w-full aspect-square rounded-3xl shadow-2xl overflow-hidden mb-6">
+            <img v-if="currentSong" :src="currentSong.thumbnail" alt="Album Art" class="w-full h-full object-cover">
+            <div v-else class="w-full h-full bg-gray-200 flex items-center justify-center">
+              <span class="text-gray-500">No song playing</span>
+            </div>
+          </div>
+          <h2 class="text-3xl font-extrabold">{{ currentSong?.title || 'Midnight City' }}</h2>
+          <p class="text-lg text-gray-500 font-medium">{{ currentSong?.artist || 'M83' }}</p>
+
+          <!-- Progress Bar -->
+          <div class="mt-6">
+            <div class="h-2 bg-gray-200 rounded-full">
+              <div class="h-2 bg-blue-500 rounded-full" style="width: 30%;"></div>
+            </div>
+            <div class="flex justify-between text-xs font-mono text-gray-500 mt-1.5">
+              <span>1:20</span>
+              <span>4:03</span>
+            </div>
+          </div>
+
+          <!-- Playback Controls -->
+          <div class="flex items-center justify-center space-x-8 mt-6">
+            <button class="text-gray-500 hover:text-gray-800 transition-colors">
+              <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M8.445 14.832A1 1 0 0010 14.832V5.168a1 1 0 00-1.555-.832L4.12 8.168a1 1 0 000 1.664l4.325 3.001zM11.555 4.336a1 1 0 011.555.832v9.664a1 1 0 01-1.555.832l-4.325-3.001a1 1 0 010-1.664l4.325-3.001z"></path></svg>
+            </button>
+            <button @click="togglePlayPause" class="w-20 h-20 bg-blue-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-blue-600 transition-all scale-105">
+              <svg v-if="!isPlaying" class="w-10 h-10 ml-1" fill="currentColor" viewBox="0 0 20 20"><path d="M4.018 15.59a1 1 0 001.414.038l8.36-7.522a1 1 0 000-1.414l-8.36-7.522a1 1 0 00-1.452 1.376L5.61 8 4.018 9.59a1 1 0 000 1.414z"></path></svg>
+              <svg v-else class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd"></path></svg>
+            </button>
+            <button class="text-gray-500 hover:text-gray-800 transition-colors">
+              <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M4.12 5.168a1 1 0 00-1.555.832v8.001a1 1 0 001.555.832L8.445 12l-4.325-3.001zM15.88 5.168a1 1 0 00-1.555.832v8.001a1 1 0 001.555.832L20.205 12l-4.325-3.001z"></path></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Up Next -->
+        <div>
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Up Next</h3>
+            <span class="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">{{ queue.length }} songs</span>
+          </div>
+          <div class="space-y-3">
+            <div
+              v-for="song in queue"
+              :key="song.id"
+              class="bg-white p-3 rounded-xl shadow-sm flex items-center space-x-4 transition-all hover:shadow-md"
+            >
+              <img :src="song.thumbnail" alt="Song thumbnail" class="w-16 h-16 rounded-lg object-cover">
+              <div class="flex-grow">
+                <p class="font-bold text-lg">{{ song.title }}</p>
+                <p class="text-gray-500">{{ song.artist }}</p>
+                <p class="text-xs text-gray-400 mt-1">
+                  <svg class="w-3 h-3 inline -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  Added by {{ song.added_by }}
+                </p>
+              </div>
+              <button @click="upvote(song.id)" class="flex flex-col items-center justify-center text-gray-500 hover:text-blue-500 p-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                <span class="font-bold text-sm">{{ song.votes || 0 }}</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Queue Section -->
-        <div class="lg:col-span-2">
-          <div class="card p-6">
-            <div class="flex items-center justify-between mb-6">
-              <h2 class="text-2xl font-bold text-gray-900">Music Queue</h2>
-              <button 
-                @click="fetchQueue" 
-                :disabled="loading"
-                class="btn-secondary text-sm py-1 px-3 flex items-center space-x-1"
-              >
-                <span>🔄</span>
-                <span>Refresh</span>
-              </button>
-            </div>
-            
-            <!-- Loading State -->
-            <div v-if="loading" class="text-center py-8">
-              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p class="text-gray-600 mt-2">Loading queue...</p>
-            </div>
-            
-            <!-- Empty State -->
-            <div v-else-if="queue.length === 0" class="text-center py-12">
-              <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span class="text-2xl text-gray-400">🎵</span>
-              </div>
-              <h3 class="text-lg font-medium text-gray-900 mb-2">No songs in queue</h3>
-              <p class="text-gray-600">Add the first song to get the party started!</p>
-            </div>
+    </main>
 
-            <!-- Queue Items -->
-            <div v-else class="space-y-3">
-              <div 
-                v-for="(song, index) in queue" 
-                :key="index"
-                class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border hover:bg-white transition-colors duration-200"
-              >
-                <div class="flex items-center space-x-4 flex-1 min-w-0">
-                  <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span class="text-blue-600 font-semibold text-sm">{{ index + 1 }}</span>
-                  </div>
-                  <div class="min-w-0 flex-1">
-                    <h3 class="font-semibold text-gray-900 truncate">{{ song.song_title }}</h3>
-                    <p class="text-sm text-gray-600 truncate">Added by {{ song.added_by }}</p>
-                  </div>
-                </div>
-                <button 
-                  @click="playSong(song)"
-                  class="btn-primary text-sm py-2 px-3 flex items-center space-x-1 ml-4 flex-shrink-0"
-                >
-                  <span>▶️</span>
-                  <span>Play</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Add Song Section -->
-        <div class="space-y-6">
-          <div class="card p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Add Song</h3>
-            <SongSearchBar @select-song="onSongSelected" class="mb-4" />
-            <form @submit.prevent="addSong">
-              <div class="space-y-4">
-                <div>
-                  <label for="songTitle" class="block text-sm font-medium text-gray-700 mb-1">
-                    Song Title
-                  </label>
-                  <input
-                    id="songTitle"
-                    v-model="songTitle"
-                    type="text"
-                    required
-                    class="input-field"
-                    placeholder="Enter song name"
-                    :disabled="addingSong"
-                  >
-                </div>
-                
-                <div>
-                  <label for="songUrl" class="block text-sm font-medium text-gray-700 mb-1">
-                    YouTube URL
-                  </label>
-                  <input
-                    id="songUrl"
-                    v-model="songUrl"
-                    type="url"
-                    required
-                    class="input-field"
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    :disabled="addingSong"
-                  >
-                </div>
-                
-                <button 
-                  type="submit"
-                  :disabled="!songTitle || !songUrl || addingSong"
-                  class="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  <span v-if="addingSong" class="animate-spin">⏳</span>
-                  <span v-else>🎵</span>
-                  <span>{{ addingSong ? 'Adding...' : 'Add to Queue' }}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <!-- Session Info -->
-          <div class="card p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Session Info</h3>
-            <div class="space-y-3">
-              <div>
-                <p class="text-sm text-gray-600 mb-1">Session Code</p>
-                <p class="font-mono font-semibold text-lg">{{ sessionCode }}</p>
-              </div>
-              <div>
-                <p class="text-sm text-gray-600 mb-1">Your User ID</p>
-                <p class="font-mono text-sm truncate bg-gray-100 p-2 rounded">{{ userId }}</p>
-              </div>
-              <div>
-                <p class="text-sm text-gray-600 mb-1">Connection</p>
-                <div class="flex items-center space-x-2">
-                  <div 
-                    :class="[
-                      'w-2 h-2 rounded-full',
-                      isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                    ]"
-                  ></div>
-                  <span class="text-sm">{{ isConnected ? 'Connected to live updates' : 'Disconnected' }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Quick Actions -->
-          <div class="card p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-            <div class="space-y-2">
-              <button 
-                @click="copySessionCode"
-                class="w-full btn-secondary py-2 flex items-center justify-center space-x-2"
-              >
-                <span>📋</span>
-                <span>Copy Session Code</span>
-              </button>
-              <button 
-                @click="fetchQueue" 
-                :disabled="loading"
-                class="w-full btn-secondary py-2 flex items-center justify-center space-x-2 disabled:opacity-50"
-              >
-                <span>🔄</span>
-                <span>Refresh Queue</span>
-              </button>
-            </div>
-          </div>
-        </div>
+    <!-- Add Song Bar -->
+    <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200">
+      <div class="max-w-md mx-auto flex items-center space-x-3">
+        <SongSearchBar @select-song="onSongSelected" class="flex-grow" />
+        <button class="w-12 h-12 flex-shrink-0 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-200">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+        </button>
       </div>
     </div>
+    <YouTubePlayer v-if="currentVideoId" ref="player" :video-id="currentVideoId" class="hidden" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { queueAPI } from '@/services/api'
 import { getOrCreateUserId } from '@/utils/uuid'
@@ -233,67 +120,92 @@ import YouTubePlayer from '@/components/YouTubePlayer.vue'
 
 const route = useRoute()
 const sessionStore = useSessionStore()
-const { isHost } = storeToRefs(sessionStore)
 const toast = useToast()
 const sessionCode = route.params.sessionCode as string
-
-const queue = ref<any[]>([])
-const songTitle = ref('')
-const songUrl = ref('')
-const addingSong = ref(false)
-const loading = ref(false)
-const player = ref<InstanceType<typeof YouTubePlayer> | null>(null)
 const userId = ref(getOrCreateUserId())
-const currentVideoId = ref<string | null>(null)
 
-// WebSocket integration
+const queue = ref<any[]>([
+  { id: 1, title: 'Heat Waves', artist: 'Glass Animals', added_by: 'Sarah', thumbnail: 'https://i.ytimg.com/vi/mRD0-GxqHVo/hqdefault.jpg', votes: 12 },
+  { id: 2, title: 'As It Was', artist: 'Harry Styles', added_by: 'Mike', thumbnail: 'https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg', votes: 8 },
+  { id: 3, title: 'Levitating', artist: 'Dua Lipa', added_by: 'You', thumbnail: 'https://i.ytimg.com/vi/TUVcZfQe-Kw/hqdefault.jpg', votes: 5 },
+])
+const loading = ref(false)
+const addingSong = ref(false)
+const player = ref<InstanceType<typeof YouTubePlayer> | null>(null)
+const isPlaying = ref(false)
+
+const currentSong = computed(() => queue.value[0] || null)
+const currentVideoId = computed(() => {
+  if (currentSong.value) {
+    try {
+      const url = new URL(currentSong.value.song_url || `https://www.youtube.com/watch?v=u6h9A-3s2z0`)
+      return url.searchParams.get('v')
+    } catch {
+      return null
+    }
+  }
+  return null
+})
+
+
 const { isConnected, connect, disconnect, sendMessage } = useWebSocket(sessionCode)
 
 const fetchQueue = async () => {
   loading.value = true
   try {
     const songs = await queueAPI.getQueue(sessionCode)
-    queue.value = songs
+    // Enrich songs with details like thumbnail and artist (mocked for now)
+    queue.value = songs.map((s:any) => ({ ...s, artist: 'Artist', thumbnail: 'https://placehold.co/400' }))
     sessionStore.setQueue(songs)
-    toast.success('Queue Updated', 'Latest songs loaded successfully')
   } catch (error: any) {
     console.error('Failed to fetch queue:', error)
-    const errorMessage = error.response?.data?.detail || 'Failed to load queue. Please check your connection.'
-    toast.error('Queue Load Failed', errorMessage)
+    toast.error('Queue Load Failed', error.response?.data?.detail || 'Failed to load queue.')
   } finally {
     loading.value = false
   }
 }
 
-const handleQueueUpdate = () => {
-  console.log('Queue update received, refreshing...')
-  fetchQueue()
-}
+const handleQueueUpdate = () => fetchQueue()
 
-const addSong = async () => {
-  if (!songTitle.value || !songUrl.value) return
-  
+const addSong = async (song: { title: string, url: string, thumbnail: string }) => {
   addingSong.value = true
   try {
     await queueAPI.addSong(sessionCode, {
-      song_title: songTitle.value,
-      song_url: songUrl.value,
-      added_by: userId.value
+      song_title: song.title,
+      song_url: song.url,
+      added_by: userId.value,
     })
-    
-    // Clear form
-    songTitle.value = ''
-    songUrl.value = ''
-    
-    toast.success('Song Added!', `"${songTitle.value}" added to queue`)
-    console.log('Song added successfully')
-    // Note: The WebSocket will trigger a queue refresh automatically
+    toast.success('Song Added!', `"${song.title}" is now in the queue.`)
   } catch (error: any) {
     console.error('Failed to add song:', error)
-    const errorMessage = error.response?.data?.detail || 'Failed to add song. Please try again.'
-    toast.error('Add Song Failed', errorMessage)
+    toast.error('Add Song Failed', error.response?.data?.detail || 'Could not add song.')
   } finally {
     addingSong.value = false
+  }
+}
+
+const onSongSelected = (song: { title: string, url: string, thumbnail: string }) => {
+  addSong(song)
+}
+
+const togglePlayPause = () => {
+  if (isPlaying.value) {
+    player.value?.pauseVideo()
+    sendMessage({ type: 'playback_control', action: 'pause' })
+  } else {
+    player.value?.playVideo()
+    sendMessage({ type: 'playback_control', action: 'play' })
+  }
+  isPlaying.value = !isPlaying.value
+}
+
+const upvote = (songId: number) => {
+  console.log(`Upvoting song ${songId}`)
+  // This would typically send a message via WebSocket or call an API
+  // e.g., sendMessage({ type: 'vote', song_id: songId })
+  const song = queue.value.find(s => s.id === songId)
+  if (song) {
+    song.votes = (song.votes || 0) + 1
   }
 }
 
@@ -302,44 +214,18 @@ const copySessionCode = () => {
   toast.success('Copied!', 'Session code copied to clipboard')
 }
 
-const onSongSelected = (song: { title: string, url:string }) => {
-  songTitle.value = song.title
-  songUrl.value = song.url
-}
-
-const playSong = (song: any) => {
-  const url = new URL(song.song_url)
-  const videoId = url.searchParams.get('v')
-  if (videoId) {
-    currentVideoId.value = videoId
-    sendMessage({ type: 'playback_control', action: 'play', videoId })
-  }
-}
-
-const hostPlay = () => {
-  player.value?.playVideo()
-  sendMessage({ type: 'playback_control', action: 'play' })
-}
-
-const hostPause = () => {
-  player.value?.pauseVideo()
-  sendMessage({ type: 'playback_control', action: 'pause' })
-}
-
-// Lifecycle
-onMounted(async () => {
-  await fetchQueue()
+onMounted(() => {
+  // fetchQueue() // Mocking data for now
   connect()
   window.addEventListener('queue-updated', handleQueueUpdate)
   window.addEventListener('playback-action', (event: any) => {
-    const { action, videoId } = event.detail
+    const { action } = event.detail
     if (action === 'play') {
-      if (videoId && videoId !== currentVideoId.value) {
-        currentVideoId.value = videoId
-      }
       player.value?.playVideo()
+      isPlaying.value = true
     } else if (action === 'pause') {
       player.value?.pauseVideo()
+      isPlaying.value = false
     }
   })
 })
