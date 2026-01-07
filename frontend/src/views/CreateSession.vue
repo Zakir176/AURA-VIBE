@@ -95,7 +95,7 @@ const createSession = async () => {
     sessionData.value = response
     
     // Store session info
-    sessionStore.setSession(response.session_code, hostId)
+    sessionStore.setSession(response.session_code, hostId, response.host_id)
     
     toast.success('Session Created!', `Share code: ${response.session_code}`, {
       duration: 10000,
