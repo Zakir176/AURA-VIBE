@@ -15,6 +15,7 @@ class SessionCreate(BaseModel):
 class SessionOut(BaseModel):
     session_code: str
     qr_code: str
+    host_id: str
 
 class SessionJoin(BaseModel):
     session_code: str
