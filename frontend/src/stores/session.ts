@@ -1,23 +1,28 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { Song } from '@/services/api'
 
 export const useSessionStore = defineStore('session', () => {
   const currentSessionCode = ref<string | null>(null)
   const userId = ref<string | null>(null)
+  const hostId = ref<string | null>(null)
   const queue = ref<Song[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
-  const setSession = (sessionCode: string, user: string) => {
+  const isHost = computed(() => userId.value !== null && userId.value === hostId.value)
+
+  const setSession = (sessionCode: string, user: string, currentHostId: string) => {
     currentSessionCode.value = sessionCode
     userId.value = user
+    hostId.value = currentHostId
     error.value = null
   }
 
   const clearSession = () => {
     currentSessionCode.value = null
     userId.value = null
+    hostId.value = null
     queue.value = []
     error.value = null
   }
@@ -42,9 +47,13 @@ export const useSessionStore = defineStore('session', () => {
     // State
     currentSessionCode,
     userId,
+    hostId,
     queue,
     isLoading,
     error,
+
+    // Getters
+    isHost,
     
     // Actions
     setSession,
