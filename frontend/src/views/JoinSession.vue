@@ -316,10 +316,10 @@ const joinSession = async () => {
   
   try {
     const userId = getOrCreateUserId()
-    await sessionAPI.joinSession(sessionCode.value, userId)
+    const response = await sessionAPI.joinSession(sessionCode.value, userId)
     
     // Store session info
-    sessionStore.setSession(sessionCode.value, userId)
+    sessionStore.setSession(sessionCode.value, userId, response.host_id)
     
     toast.success('Session Joined!', `You've joined session ${sessionCode.value}`)
     
