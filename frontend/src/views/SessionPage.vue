@@ -48,6 +48,14 @@
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <YouTubePlayer ref="player" v-if="currentVideoId" :video-id="currentVideoId" class="mb-6" />
+      <div v-if="isHost" class="card p-4 mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Host Controls</h3>
+        <div class="flex space-x-2">
+          <button @click="hostPlay" class="btn-secondary py-2 px-4">Play</button>
+          <button @click="hostPause" class="btn-secondary py-2 px-4">Pause</button>
+        </div>
+      </div>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Queue Section -->
         <div class="lg:col-span-2">
@@ -95,14 +103,13 @@
                     <p class="text-sm text-gray-600 truncate">Added by {{ song.added_by }}</p>
                   </div>
                 </div>
-                <a 
-                  :href="song.song_url" 
-                  target="_blank"
+                <button 
+                  @click="playSong(song)"
                   class="btn-primary text-sm py-2 px-3 flex items-center space-x-1 ml-4 flex-shrink-0"
                 >
                   <span>▶️</span>
                   <span>Play</span>
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -213,6 +220,7 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { queueAPI } from '@/services/api'
@@ -221,9 +229,11 @@ import { useWebSocket } from '@/composables/useWebSocket'
 import { useSessionStore } from '@/stores/session'
 import { useToast } from '@/composables/useToast'
 import SongSearchBar from '@/components/SongSearchBar.vue'
+import YouTubePlayer from '@/components/YouTubePlayer.vue'
 
 const route = useRoute()
 const sessionStore = useSessionStore()
+const { isHost } = storeToRefs(sessionStore)
 const toast = useToast()
 const sessionCode = route.params.sessionCode as string
 
@@ -232,10 +242,12 @@ const songTitle = ref('')
 const songUrl = ref('')
 const addingSong = ref(false)
 const loading = ref(false)
+const player = ref<InstanceType<typeof YouTubePlayer> | null>(null)
 const userId = ref(getOrCreateUserId())
+const currentVideoId = ref<string | null>(null)
 
 // WebSocket integration
-const { isConnected, connect, disconnect } = useWebSocket(sessionCode)
+const { isConnected, connect, disconnect, sendMessage } = useWebSocket(sessionCode)
 
 const fetchQueue = async () => {
   loading.value = true
@@ -290,9 +302,28 @@ const copySessionCode = () => {
   toast.success('Copied!', 'Session code copied to clipboard')
 }
 
-const onSongSelected = (song: { title: string, url: string }) => {
+const onSongSelected = (song: { title: string, url:string }) => {
   songTitle.value = song.title
   songUrl.value = song.url
+}
+
+const playSong = (song: any) => {
+  const url = new URL(song.song_url)
+  const videoId = url.searchParams.get('v')
+  if (videoId) {
+    currentVideoId.value = videoId
+    sendMessage({ type: 'playback_control', action: 'play', videoId })
+  }
+}
+
+const hostPlay = () => {
+  player.value?.playVideo()
+  sendMessage({ type: 'playback_control', action: 'play' })
+}
+
+const hostPause = () => {
+  player.value?.pauseVideo()
+  sendMessage({ type: 'playback_control', action: 'pause' })
 }
 
 // Lifecycle
@@ -300,6 +331,17 @@ onMounted(async () => {
   await fetchQueue()
   connect()
   window.addEventListener('queue-updated', handleQueueUpdate)
+  window.addEventListener('playback-action', (event: any) => {
+    const { action, videoId } = event.detail
+    if (action === 'play') {
+      if (videoId && videoId !== currentVideoId.value) {
+        currentVideoId.value = videoId
+      }
+      player.value?.playVideo()
+    } else if (action === 'pause') {
+      player.value?.pauseVideo()
+    }
+  })
 })
 
 onUnmounted(() => {
