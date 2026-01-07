@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
@@ -19,33 +19,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
-# Session Model
-class Session(Base):
-    __tablename__ = "sessions"
-    id = Column(Integer, primary_key=True, index=True)
-    session_code = Column(String, unique=True, index=True)
-    host_id = Column(String)
-
-# Queue Model (UPDATED with position)
-class QueueItem(Base):
-    __tablename__ = "queue"
-    id = Column(Integer, primary_key=True, index=True)
-    session_code = Column(String, ForeignKey("sessions.session_code"))
-    song_title = Column(String)
-    song_url = Column(String)
-    added_by = Column(String)
-    votes = Column(Integer, default=0)
-    played = Column(Boolean, default=False)
-    position = Column(Integer, default=0)  # NEW: For reordering
-
-# User Votes Model
-class UserVote(Base):
-    __tablename__ = "user_votes"
-    id = Column(Integer, primary_key=True, index=True)
-    session_code = Column(String)
-    queue_id = Column(Integer)
-    user_id = Column(String)
-    vote_value = Column(Integer)
-
-Base.metadata.create_all(bind=engine)
