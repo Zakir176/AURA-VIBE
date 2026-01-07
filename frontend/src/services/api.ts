@@ -66,6 +66,7 @@ export interface CreateSessionRequest {
 export interface CreateSessionResponse {
   session_code: string
   qr_code: string
+  host_id: string
 }
 
 export interface JoinSessionRequest {
@@ -75,6 +76,7 @@ export interface JoinSessionRequest {
 
 export interface JoinSessionResponse {
   message: string
+  host_id: string
 }
 
 export interface AddSongRequest {
