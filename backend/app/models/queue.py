@@ -1,20 +1,32 @@
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from app.database import Base
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 
-class QueueItem(BaseModel):
+# SQLAlchemy Model
+class Queue(Base):
+    __tablename__ = "queue"
+    id = Column(Integer, primary_key=True, index=True)
+    session_code = Column(String, ForeignKey("sessions.session_code"))
+    song_title = Column(String)
+    song_url = Column(String)
+    added_by = Column(String)
+    votes = Column(Integer, default=0)
+    played = Column(Boolean, default=False)
+    position = Column(Integer, default=0)
+
+# Pydantic Models (Schemas)
+class QueueCreate(BaseModel):
     session_code: str
     song_title: str
     song_url: str
     added_by: str
 
-    class Config:
-        from_attributes = True
-
 class QueueReorder(BaseModel):
     session_code: str
-    order: List[int]  # Array of queue IDs in new order
+    order: List[int]
 
-class QueueItemResponse(QueueItem):
+class QueueItem(QueueCreate):
     id: int
     votes: int
     played: bool
