@@ -2,21 +2,21 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import update
 from app.database import get_db
-from app.models.queue import QueueItem, QueueReorder
-from app.models.session import Session
-from app.core.websocket import broadcast_to_session
+from app.models.queue import Queue, QueueCreate, QueueReorder
+from app.models.session import Session as SessionModel
+from app.websocket import broadcast_to_session
 import logging
 
 router = APIRouter(tags=["queue"])
 logger = logging.getLogger(__name__)
 
 @router.post("/add")
-async def add_to_queue(item: QueueItem, db: Session = Depends(get_db)):
-    db_session = db.query(Session).filter(Session.session_code == item.session_code).first()
+async def add_to_queue(item: QueueCreate, db: Session = Depends(get_db)):
+    db_session = db.query(SessionModel).filter(SessionModel.session_code == item.session_code).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
     
-    db_item = QueueItem(
+    db_item = Queue(
         session_code=item.session_code,
         song_title=item.song_title,
         song_url=item.song_url,
@@ -29,7 +29,7 @@ async def add_to_queue(item: QueueItem, db: Session = Depends(get_db)):
     db.refresh(db_item)
     
     # Broadcast to WebSocket
-    broadcast_to_session(item.session_code, {
+    await broadcast_to_session(item.session_code, {
         "type": "queue_updated",
         "queue_id": db_item.id,
         "action": "added"
@@ -39,10 +39,10 @@ async def add_to_queue(item: QueueItem, db: Session = Depends(get_db)):
 
 @router.get("/list/{session_code}")
 async def list_queue(session_code: str, db: Session = Depends(get_db)):
-    items = db.query(QueueItem).filter(
-        QueueItem.session_code == session_code,
-        QueueItem.played == False
-    ).order_by(QueueItem.id).all()
+    items = db.query(Queue).filter(
+        Queue.session_code == session_code,
+        Queue.played == False
+    ).order_by(Queue.id).all()
     return items
 
 @router.post("/vote")
@@ -52,9 +52,9 @@ async def vote_on_song(vote_data: dict, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Missing required fields")
     
     # Check if user already voted
-    existing_vote = db.query(QueueItem).filter(
-        QueueItem.id == vote_data["queue_id"],
-        QueueItem.session_code == vote_data["session_code"]
+    existing_vote = db.query(Queue).filter(
+        Queue.id == vote_data["queue_id"],
+        Queue.session_code == vote_data["session_code"]
     ).first()
     
     if not existing_vote:
@@ -68,7 +68,7 @@ async def vote_on_song(vote_data: dict, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(existing_vote)
     
-    broadcast_to_session(vote_data["session_code"], {
+    await broadcast_to_session(vote_data["session_code"], {
         "type": "vote_updated",
         "queue_id": vote_data["queue_id"],
         "votes": existing_vote.votes
@@ -82,9 +82,9 @@ async def play_song(play_data: dict, db: Session = Depends(get_db)):
     if not all(key in play_data for key in required):
         raise HTTPException(status_code=400, detail="Missing required fields")
     
-    item = db.query(QueueItem).filter(
-        QueueItem.id == play_data["queue_id"],
-        QueueItem.session_code == play_data["session_code"]
+    item = db.query(Queue).filter(
+        Queue.id == play_data["queue_id"],
+        Queue.session_code == play_data["session_code"]
     ).first()
     
     if not item:
@@ -96,7 +96,7 @@ async def play_song(play_data: dict, db: Session = Depends(get_db)):
     item.played = True
     db.commit()
     
-    broadcast_to_session(play_data["session_code"], {
+    await broadcast_to_session(play_data["session_code"], {
         "type": "song_played",
         "queue_id": play_data["queue_id"],
         "song_title": item.song_title
@@ -111,14 +111,14 @@ async def reorder_queue(reorder_data: QueueReorder, db: Session = Depends(get_db
     Request: {"session_code": "ABC123", "order": [3, 1, 2, 4]}
     """
     # Verify session exists
-    session = db.query(Session).filter(Session.session_code == reorder_data.session_code).first()
+    session = db.query(SessionModel).filter(SessionModel.session_code == reorder_data.session_code).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     
     # Verify all IDs exist and belong to session
-    items = db.query(QueueItem).filter(
-        QueueItem.session_code == reorder_data.session_code,
-        QueueItem.played == False
+    items = db.query(Queue).filter(
+        Queue.session_code == reorder_data.session_code,
+        Queue.played == False
     ).all()
     
     existing_ids = [item.id for item in items]
@@ -129,20 +129,20 @@ async def reorder_queue(reorder_data: QueueReorder, db: Session = Depends(get_db
     
     # Update order using SQL window function or manual position update
     for new_pos, queue_id in enumerate(reorder_ids, 1):
-        db.execute(update(QueueItem)
-                  .where(QueueItem.id == queue_id)
+        db.execute(update(Queue)
+                  .where(Queue.id == queue_id)
                   .values(position=new_pos))
     
     db.commit()
     
     # Fetch reordered queue
-    reordered_items = db.query(QueueItem).filter(
-        QueueItem.session_code == reorder_data.session_code,
-        QueueItem.played == False
-    ).order_by(QueueItem.position).all()
+    reordered_items = db.query(Queue).filter(
+        Queue.session_code == reorder_data.session_code,
+        Queue.played == False
+    ).order_by(Queue.position).all()
     
     # Broadcast reordered queue
-    broadcast_to_session(reorder_data.session_code, {
+    await broadcast_to_session(reorder_data.session_code, {
         "type": "queue_reordered",
         "queue": [{"id": item.id, "song_title": item.song_title, "votes": item.votes} for item in reordered_items]
     })
