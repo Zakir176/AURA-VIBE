@@ -9,6 +9,7 @@ Aura Vibe is a real-time collaborative DJ platform where users join music sessio
 ### ?? Core Functionality
 - **Instant Session Creation**: Start a session with one click.
 - **QR Code Sharing**: Share sessions via QR codes or unique codes.
+- **YouTube Song Search**: Search for songs on YouTube directly within the app.
 - **Real-time Sync**: Live queue updates via WebSocket.
 - **Collaborative Queue**: Users add songs to a shared queue.
 - **YouTube Integration**: Planned support for YouTube URLs.
@@ -22,32 +23,33 @@ Aura Vibe is a real-time collaborative DJ platform where users join music sessio
 - **WebSocket Updates**: Real-time queue synchronization.
 - **SQLite Database**: Lightweight storage for sessions and queues.
 - **FastAPI Backend**: Modern, high-performance API.
-- **Vue 3 Frontend**: In development with Vuetify.
+- **Vue 3 Frontend**: In development with Tailwind CSS.
 
 ## ??? Monorepo Structure
 
-`
+```
 AuraVibe/
-+-- backend/                 # FastAPI backend
-�   +-- app/
-�   �   +-- routes/          # API route handlers
-�   �   +-- models/          # SQLAlchemy models
-�   �   +-- websocket/       # WebSocket management
-�   �   +-- database/        # Database configuration
-�   +-- requirements.txt     # Python dependencies
-�   +-- README.md            # Backend-specific instructions
-+-- frontend/                # Vue 3 + Vuetify frontend (in progress)
-�   +-- src/
-�   �   +-- components/      # Vue components
-�   �   +-- api.js           # API service layer
-�   �   +-- websocket.js     # WebSocket connection
-�   �   +-- router.js        # Vue Router
-�   �   +-- main.js          # App entry
-�   +-- package.json         # Node dependencies
-�   +-- README.md            # Frontend-specific instructions
-+-- README.md                # This file
-+-- LICENSE                  # MIT License
-`
+├── backend/                 # FastAPI backend
+│   ├── app/
+│   │   ├── routes/          # API route handlers
+│   │   ├── models/          # SQLAlchemy models
+│   │   ├── websocket.py     # WebSocket management
+│   │   └── database.py      # Database configuration
+│   ├── requirements.txt     # Python dependencies
+│   ├── .env.example         # Environment variable template
+│   └── README.md            # Backend-specific instructions
+├── frontend/                # Vue 3 + Tailwind CSS frontend
+│   ├── src/
+│   │   ├── components/      # Vue components
+│   │   ├── services/        # API service layer
+│   │   ├── composables/     # Reusable Vue composables
+│   │   ├── router/          # Vue Router
+│   │   └── main.ts          # App entry
+│   ├── package.json         # Node dependencies
+│   └── README.md            # Frontend-specific instructions
+├── README.md                # This file
+└── LICENSE                  # MIT License
+```
 
 ## ?? Quick Start
 
@@ -68,17 +70,22 @@ cd auravibe
    `bash
    cd backend
    `
-2. Create and activate a virtual environment:
+2. Create a `.env` file from the example:
+   `bash
+   cp .env.example .env
+   `
+3. Add your YouTube API key to the `.env` file.
+4. Create and activate a virtual environment:
    `bash
    python -m venv venv
    .\venv\Scripts\Activate.ps1  # On Windows
    # or: source venv/bin/activate  # On macOS/Linux
    `
-3. Install dependencies:
+5. Install dependencies:
    `bash
    pip install -r requirements.txt
    `
-4. Run the server:
+6. Run the server:
    `bash
    uvicorn app.main:app --reload
    `
@@ -140,14 +147,23 @@ The frontend is under development. Once complete:
 - **WebSocket**: websockets 13.1
 - **Dependencies**: See ackend/requirements.txt
 
-### Frontend Tech Stack (Planned)
+### Frontend Tech Stack
+
 - **Vue 3**: Composition API
-- **Vuetify**: Material Design components
+
+- **Tailwind CSS**: Utility-first CSS framework
+
+- **Pinia**: State management
+
 - **Vue Router**: Client-side routing
+
 - **Axios**: HTTP client
+
 - **uuid**: UUID generation
-- **jsqr**: QR code scanning
-- **Dependencies**: See rontend/package.json
+
+- **vue-qrcode-reader**: QR code scanning
+
+- **Dependencies**: See `frontend/package.json`
 
 ### API Endpoints
 | Method | Endpoint                     | Description                     |
@@ -156,15 +172,13 @@ The frontend is under development. Once complete:
 | POST   | /session/join              | Join an existing session        |
 | POST   | /queue/add                 | Add a song to the queue         |
 | GET    | /queue/list/{session_code} | Get session queue               |
+| GET    | /youtube/search            | Search for a YouTube video      |
 | WS     | /ws/{session_code}         | WebSocket for real-time updates |
 
 ### Environment Variables
-- **Backend**: None required (uses SQLite at ackend/aura_vibe.db).
-- **Frontend** (planned):
-  `env
-  VITE_API_BASE_URL=http://localhost:8000
-  VITE_APP_NAME=AuraVibe
-  `
+- **Backend**: Create a `.env` file in the `backend` directory. See `.env.example`.
+  - `YOUTUBE_API_KEY`: Your Google Cloud YouTube Data API v3 key.
+- **Frontend**: The `VITE_API_BASE_URL` is hardcoded to `http://localhost:8000` in `frontend/src/services/api.ts`. This can be changed to a `.env` file if needed.
 
 ##  Contributing
 1. Fork the repository.
