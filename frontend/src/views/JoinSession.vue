@@ -315,7 +315,7 @@ const joinSession = async () => {
   error.value = ''
   
   try {
-    const userId = getOrCreateUserId(sessionCode.value)
+    const userId = getOrCreateUserId()
     await sessionAPI.joinSession(sessionCode.value, userId)
     
     // Store session info

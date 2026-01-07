@@ -142,4 +142,24 @@ export const queueAPI = {
   }
 }
 
+export interface YouTubeSong {
+  videoId: string;
+  title: string;
+  thumbnail: string;
+  url: string;
+}
+
+export const youtubeAPI = {
+  search: async (query: string, maxResults: number = 5): Promise<YouTubeSong[]> => {
+    try {
+      const response = await api.get<YouTubeSong[]>('/youtube/search', {
+        params: { query, maxResults }
+      })
+      return response.data
+    } catch (error) {
+      throw error
+    }
+  }
+}
+
 export default api

@@ -27,6 +27,9 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+async def broadcast_to_session(session_code: str, message: dict):
+    await manager.broadcast(session_code, message)
+
 @router.websocket("/ws/{session_code}")  # <--- MATCH THIS TO FRONTEND
 async def websocket_endpoint(websocket: WebSocket, session_code: str):
     await manager.connect(websocket, session_code)
