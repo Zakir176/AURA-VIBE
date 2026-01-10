@@ -3,7 +3,7 @@
     <!-- Header -->
     <header class="flex items-center justify-between px-4 py-6 bg-white border-b border-gray-200 shadow-sm fixed w-full z-10">
       <router-link to="/" class="text-gray-600 hover:text-gray-800 transition-colors">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-label="Back"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
       </router-link>
       <h1 class="text-xl font-semibold">Join Session</h1>
       <div class="w-6 h-6"></div> <!-- Spacer to balance header -->
@@ -14,7 +14,7 @@
       <div class="max-w-md mx-auto px-4 text-center">
         <!-- Musical Note Icon -->
         <div class="mb-8 w-24 h-24 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
-          <img src="/soundwave.png" alt="Musical Note" class="w-12 h-12 text-blue-500 opacity-75">
+          <svg class="w-12 h-12 text-blue-500 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 6l12-3"></path></svg>
         </div>
 
         <h2 class="text-4xl font-extrabold text-gray-800 mb-2">Enter session code</h2>
@@ -32,7 +32,7 @@
               @keydown.backspace="handleBackspace(n - 1)"
               type="text"
               maxlength="1"
-              class="w-14 h-16 text-center text-3xl font-extrabold bg-white border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition text-gray-700"
+              class="w-12 h-14 md:w-14 md:h-16 text-center text-2xl md:text-3xl font-extrabold bg-white border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition text-gray-700"
               inputmode="numeric"
               pattern="[0-9A-Za-z]"
               uppercase
@@ -47,7 +47,7 @@
               @keydown.backspace="handleBackspace(n + 2)"
               type="text"
               maxlength="1"
-              class="w-14 h-16 text-center text-3xl font-extrabold bg-white border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition text-gray-700"
+              class="w-12 h-14 md:w-14 md:h-16 text-center text-2xl md:text-3xl font-extrabold bg-white border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition text-gray-700"
               inputmode="numeric"
               pattern="[0-9A-Za-z]"
               uppercase
@@ -111,22 +111,6 @@
                 </div>
               </div>
               <p class="text-sm text-gray-600 text-center">Point your camera at a session QR code</p>
-              <div class="flex justify-center space-x-4 mt-4">
-                <button 
-                  @click="toggleCamera"
-                  class="btn-secondary text-sm py-2 px-4 flex items-center space-x-2"
-                >
-                  <span>{{ cameraActive ? '🛑' : '📷' }}</span>
-                  <span>{{ cameraActive ? 'Stop' : 'Start' }} Camera</span>
-                </button>
-                <button 
-                  @click="switchCamera"
-                  class="btn-secondary text-sm py-2 px-4 flex items-center space-x-2"
-                >
-                  <span>🔄</span>
-                  <span>Switch Camera</span>
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -327,33 +311,6 @@ const onQRCodeDecoded = (decodedString: string) => {
   } else {
     toast.error('Invalid QR Code', 'Please scan a valid AuraVibe session QR code')
   }
-}
-
-// Toggle camera on/off
-const toggleCamera = () => {
-  if (cameraActive.value) {
-    cameraState.value = 'off'
-    cameraActive.value = false
-  } else {
-    cameraState.value = 'auto'
-    cameraActive.value = true
-  }
-}
-
-// Switch between front/back camera
-const switchCamera = async () => {
-  if (availableCameras.value.length <= 1) {
-    toast.info('Camera Switch', 'Only one camera available')
-    return
-  }
-  
-  currentCamera.value = (currentCamera.value + 1) % availableCameras.value.length
-  cameraState.value = 'off'
-  
-  // Brief pause before restarting with new camera
-  setTimeout(() => {
-    cameraState.value = 'auto'
-  }, 300)
 }
 
 const joinSession = async () => {
