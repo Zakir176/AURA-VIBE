@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'https://aura-vibe.onrender.com'
+const API_BASE_URL = '/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -79,17 +79,23 @@ export interface JoinSessionResponse {
   host_id: string
 }
 
-export interface AddSongRequest {
-  session_code: string
-  song_title: string
-  song_url: string
+export interface AddSongPayload {
+  id: string
+  name: string
+  artist_name: string
+  audio: string
+  image: string
   added_by: string
 }
 
-export interface Song {
-  song_title: string
-  song_url: string
-  added_by: string
+export interface AddSongRequest {
+  session_code: string
+  song_data: AddSongPayload
+}
+
+export interface Song extends AddSongPayload {
+  // Any additional properties for a song in the queue can go here
+  // For now, it extends AddSongPayload which already contains all necessary fields
 }
 
 export const sessionAPI = {
@@ -120,11 +126,11 @@ export const sessionAPI = {
 }
 
 export const queueAPI = {
-  addSong: async (sessionCode: string, songData: Omit<AddSongRequest, 'session_code'>): Promise<Song> => {
+  addSong: async (sessionCode: string, songData: AddSongPayload): Promise<Song> => {
     try {
       const response = await api.post<Song>('/queue/add', {
         session_code: sessionCode,
-        ...songData
+        song_data: songData
       })
       return response.data
     } catch (error) {
@@ -144,24 +150,28 @@ export const queueAPI = {
   }
 }
 
-export interface YouTubeSong {
-  videoId: string;
-  title: string;
-  thumbnail: string;
-  url: string;
+export interface JamendoSong {
+  id: string; // Jamendo track ID
+  name: string; // Track name
+  artist_name: string; // Artist name
+  audio: string; // URL to the audio file
+  image: string; // URL to the track image/thumbnail
+  // Add other relevant fields if necessary
 }
 
-export const youtubeAPI = {
-  search: async (query: string, maxResults: number = 5): Promise<YouTubeSong[]> => {
+export const jamendoAPI = {
+  search: async (query: string): Promise<JamendoSong[]> => {
     try {
-      const response = await api.get<YouTubeSong[]>('/youtube/search', {
-        params: { query, maxResults }
+      const response = await api.get<{ tracks: JamendoSong[] }>('/jamendo/search', {
+        params: { query }
       })
-      return response.data
+      return response.data.tracks
     } catch (error) {
       throw error
     }
   }
 }
+
+
 
 export default api
