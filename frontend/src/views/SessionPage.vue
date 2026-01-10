@@ -3,7 +3,7 @@
     <!-- Header -->
     <header class="flex items-center justify-between px-4 py-5 bg-white border-b border-gray-200 shadow-sm fixed w-full top-0 z-10">
       <router-link to="/" class="text-gray-600 hover:text-gray-800 transition-colors">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-label="Back"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
       </router-link>
       <div class="text-center">
         <h1 class="text-lg font-semibold flex items-center">
@@ -29,26 +29,26 @@
         <!-- Currently Playing -->
         <div class="text-center mb-8">
           <div class="relative w-full aspect-square rounded-3xl shadow-2xl overflow-hidden mb-6">
-            <img v-if="currentSong" :src="currentSong.thumbnail" alt="Album Art" class="w-full h-full object-cover">
+            <img v-if="currentSong" :src="currentSong.image" alt="Album Art" class="w-full h-full object-cover">
             <div v-else class="w-full h-full bg-gray-200 flex items-center justify-center">
               <span class="text-gray-500">No song playing</span>
             </div>
           </div>
-          <h2 class="text-3xl font-extrabold">{{ currentSong?.title || 'Midnight City' }}</h2>
-          <p class="text-lg text-gray-500 font-medium">{{ currentSong?.artist || 'M83' }}</p>
+          <h2 class="text-3xl font-extrabold">{{ currentSong?.name || 'No song playing' }}</h2>
+          <p class="text-lg text-gray-500 font-medium">{{ currentSong?.artist_name || 'No artist' }}</p>
 
-          <!-- Progress Bar -->
+          <!-- Progress Bar (will be handled by AudioPlayer later) -->
           <div class="mt-6">
             <div class="h-2 bg-gray-200 rounded-full">
-              <div class="h-2 bg-blue-500 rounded-full" style="width: 30%;"></div>
+              <div class="h-2 bg-blue-500 rounded-full" style="width: 0%;"></div>
             </div>
             <div class="flex justify-between text-xs font-mono text-gray-500 mt-1.5">
-              <span>1:20</span>
-              <span>4:03</span>
+              <span>0:00</span>
+              <span>0:00</span>
             </div>
           </div>
 
-          <!-- Playback Controls -->
+          <!-- Playback Controls (will be handled by AudioPlayer later) -->
           <div class="flex items-center justify-center space-x-8 mt-6">
             <button class="text-gray-500 hover:text-gray-800 transition-colors">
               <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M8.445 14.832A1 1 0 0010 14.832V5.168a1 1 0 00-1.555-.832L4.12 8.168a1 1 0 000 1.664l4.325 3.001zM11.555 4.336a1 1 0 011.555.832v9.664a1 1 0 01-1.555.832l-4.325-3.001a1 1 0 010-1.664l4.325-3.001z"></path></svg>
@@ -62,7 +62,6 @@
             </button>
           </div>
         </div>
-
         <!-- Up Next -->
         <div>
           <div class="flex justify-between items-center mb-4">
@@ -75,10 +74,10 @@
               :key="song.id"
               class="bg-white p-3 rounded-xl shadow-sm flex items-center space-x-4 transition-all hover:shadow-md"
             >
-              <img :src="song.thumbnail" alt="Song thumbnail" class="w-16 h-16 rounded-lg object-cover">
+              <img :src="song.image" alt="Song thumbnail" class="w-16 h-16 rounded-lg object-cover">
               <div class="flex-grow">
-                <p class="font-bold text-lg">{{ song.title }}</p>
-                <p class="text-gray-500">{{ song.artist }}</p>
+                <p class="font-bold text-lg">{{ song.name }}</p>
+                <p class="text-gray-500">{{ song.artist_name }}</p>
                 <p class="text-xs text-gray-400 mt-1">
                   <svg class="w-3 h-3 inline -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                   Added by {{ song.added_by }}
@@ -103,20 +102,26 @@
         </button>
       </div>
     </div>
-    <YouTubePlayer v-if="currentVideoId" ref="player" :video-id="currentVideoId" class="hidden" />
+    <AudioPlayer
+      v-if="currentSong"
+      :current-track="currentSong"
+      :playlist="queue"
+      @track-ended="handleTrackEnded"
+      @play-status-changed="handlePlayStatusChanged"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { queueAPI } from '@/services/api'
+import { queueAPI, Song, JamendoSong } from '@/services/api'
 import { getOrCreateUserId } from '@/utils/uuid'
 import { useWebSocket } from '@/composables/useWebSocket'
 import { useSessionStore } from '@/stores/session'
 import { useToast } from '@/composables/useToast'
 import SongSearchBar from '@/components/SongSearchBar.vue'
-import YouTubePlayer from '@/components/YouTubePlayer.vue'
+import AudioPlayer from '@/components/AudioPlayer.vue'
 
 const route = useRoute()
 const sessionStore = useSessionStore()
@@ -124,28 +129,13 @@ const toast = useToast()
 const sessionCode = route.params.sessionCode as string
 const userId = ref(getOrCreateUserId())
 
-const queue = ref<any[]>([
-  { id: 1, title: 'Heat Waves', artist: 'Glass Animals', added_by: 'Sarah', thumbnail: 'https://i.ytimg.com/vi/mRD0-GxqHVo/hqdefault.jpg', votes: 12 },
-  { id: 2, title: 'As It Was', artist: 'Harry Styles', added_by: 'Mike', thumbnail: 'https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg', votes: 8 },
-  { id: 3, title: 'Levitating', artist: 'Dua Lipa', added_by: 'You', thumbnail: 'https://i.ytimg.com/vi/TUVcZfQe-Kw/hqdefault.jpg', votes: 5 },
-])
+const queue = ref<Song[]>([])
 const loading = ref(false)
 const addingSong = ref(false)
-const player = ref<InstanceType<typeof YouTubePlayer> | null>(null)
+const player = ref<InstanceType<typeof AudioPlayer> | null>(null)
 const isPlaying = ref(false)
 
 const currentSong = computed(() => queue.value[0] || null)
-const currentVideoId = computed(() => {
-  if (currentSong.value) {
-    try {
-      const url = new URL(currentSong.value.song_url || `https://www.youtube.com/watch?v=u6h9A-3s2z0`)
-      return url.searchParams.get('v')
-    } catch {
-      return null
-    }
-  }
-  return null
-})
 
 
 const { isConnected, connect, disconnect, sendMessage } = useWebSocket(sessionCode)
@@ -154,8 +144,7 @@ const fetchQueue = async () => {
   loading.value = true
   try {
     const songs = await queueAPI.getQueue(sessionCode)
-    // Enrich songs with details like thumbnail and artist (mocked for now)
-    queue.value = songs.map((s:any) => ({ ...s, artist: 'Artist', thumbnail: 'https://placehold.co/400' }))
+    queue.value = songs
     sessionStore.setQueue(songs)
   } catch (error: any) {
     console.error('Failed to fetch queue:', error)
@@ -167,15 +156,19 @@ const fetchQueue = async () => {
 
 const handleQueueUpdate = () => fetchQueue()
 
-const addSong = async (song: { title: string, url: string, thumbnail: string }) => {
+const addSong = async (jamendoSong: JamendoSong) => {
   addingSong.value = true
   try {
-    await queueAPI.addSong(sessionCode, {
-      song_title: song.title,
-      song_url: song.url,
+    const payload = {
+      id: jamendoSong.id,
+      name: jamendoSong.name,
+      artist_name: jamendoSong.artist_name,
+      audio: jamendoSong.audio,
+      image: jamendoSong.image,
       added_by: userId.value,
-    })
-    toast.success('Song Added!', `"${song.title}" is now in the queue.`)
+    }
+    await queueAPI.addSong(sessionCode, payload)
+    toast.success('Song Added!', `"${jamendoSong.name}" is now in the queue.`)
   } catch (error: any) {
     console.error('Failed to add song:', error)
     toast.error('Add Song Failed', error.response?.data?.detail || 'Could not add song.')
@@ -184,19 +177,32 @@ const addSong = async (song: { title: string, url: string, thumbnail: string }) 
   }
 }
 
-const onSongSelected = (song: { title: string, url: string, thumbnail: string }) => {
-  addSong(song)
+const onSongSelected = (jamendoSong: JamendoSong) => {
+  addSong(jamendoSong)
 }
 
 const togglePlayPause = () => {
   if (isPlaying.value) {
-    player.value?.pauseVideo()
-    sendMessage({ type: 'playback_control', action: 'pause' })
+    player.value?.pause()
+    sendMessage({ type: 'playback_control', action: 'pause' }) // Notify others of pause
   } else {
-    player.value?.playVideo()
-    sendMessage({ type: 'playback_control', action: 'play' })
+    player.value?.play()
+    sendMessage({ type: 'playback_control', action: 'play' }) // Notify others of play
   }
-  isPlaying.value = !isPlaying.value
+  // isPlaying will be updated by handlePlayStatusChanged
+}
+
+const handleTrackEnded = () => {
+  // Logic to play next song in the queue
+  // For now, just log and reset isPlaying
+  console.log('Track has ended.')
+  // isPlaying.value = false; // AudioPlayer will emit play-status-changed
+  // You would typically advance the queue here
+  // sendMessage({ type: 'track_ended', session_code: sessionCode })
+}
+
+const handlePlayStatusChanged = (status: boolean) => {
+  isPlaying.value = status
 }
 
 const upvote = (songId: number) => {
@@ -215,19 +221,9 @@ const copySessionCode = () => {
 }
 
 onMounted(() => {
-  // fetchQueue() // Mocking data for now
+  fetchQueue()
   connect()
   window.addEventListener('queue-updated', handleQueueUpdate)
-  window.addEventListener('playback-action', (event: any) => {
-    const { action } = event.detail
-    if (action === 'play') {
-      player.value?.playVideo()
-      isPlaying.value = true
-    } else if (action === 'pause') {
-      player.value?.pauseVideo()
-      isPlaying.value = false
-    }
-  })
 })
 
 onUnmounted(() => {
