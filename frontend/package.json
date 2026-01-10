@@ -23,7 +23,8 @@
     "uuid": "^13.0.0",
     "vue": "^3.5.22",
     "vue-qrcode-reader": "^5.7.3",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "howler": "^2.2.4"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.1",
