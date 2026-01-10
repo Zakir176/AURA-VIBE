@@ -20,7 +20,7 @@ export function useWebSocket(sessionCode: string) {
 
       // Create new WebSocket connection
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = 'aura-vibe.onrender.com';
+      const host = import.meta.env.DEV ? window.location.host : 'aura-vibe.onrender.com';
       const wsUrl = `${protocol}//${host}/ws/${sessionCode}`;
       
       console.log(`🔌 Connecting to WebSocket: ${wsUrl}`);
