@@ -101,8 +101,8 @@ export interface Song extends AddSongPayload {
 export const sessionAPI = {
   createSession: async (hostId: string): Promise<CreateSessionResponse> => {
     try {
-      const response = await api.post<CreateSessionResponse>('/session/create', { 
-        host_id: hostId 
+      const response = await api.post<CreateSessionResponse>('/session/create', {
+        host_id: hostId
       })
       return response.data
     } catch (error) {
@@ -113,13 +113,22 @@ export const sessionAPI = {
 
   joinSession: async (sessionCode: string, userId: string): Promise<JoinSessionResponse> => {
     try {
-      const response = await api.post<JoinSessionResponse>('/session/join', { 
-        session_code: sessionCode, 
-        user_id: userId 
+      const response = await api.post<JoinSessionResponse>('/session/join', {
+        session_code: sessionCode,
+        user_id: userId
       })
       return response.data
     } catch (error) {
       // You can also handle errors specifically for this API call here if needed
+      throw error
+    }
+  },
+
+  getSession: async (sessionCode: string): Promise<CreateSessionResponse> => {
+    try {
+      const response = await api.get<CreateSessionResponse>(`/session/${sessionCode}`)
+      return response.data
+    } catch (error) {
       throw error
     }
   }
@@ -138,13 +147,27 @@ export const queueAPI = {
       throw error
     }
   },
-  
+
   getQueue: async (sessionCode: string): Promise<Song[]> => {
     try {
       const response = await api.get<Song[]>(`/queue/list/${sessionCode}`)
       return response.data
     } catch (error) {
       // Handle errors specifically for getting the queue if needed
+      throw error
+    }
+  },
+
+  vote: async (sessionCode: string, queueId: number, vote: boolean, userId: string): Promise<any> => {
+    try {
+      const response = await api.post('/queue/vote', {
+        session_code: sessionCode,
+        queue_id: queueId,
+        vote: vote,
+        user_id: userId
+      })
+      return response.data
+    } catch (error) {
       throw error
     }
   }
