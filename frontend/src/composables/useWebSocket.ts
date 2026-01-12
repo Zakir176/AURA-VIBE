@@ -8,7 +8,7 @@ export function useWebSocket(sessionCode: string) {
   const reconnectAttempts = ref(0);
   const maxReconnectAttempts = 5;
   const reconnectInterval = ref<number | null>(null);
-  
+
   const toast = useToast();
 
   const connect = () => {
@@ -19,10 +19,12 @@ export function useWebSocket(sessionCode: string) {
       }
 
       // Create new WebSocket connection
+      // In development, we use the Vite proxy at /ws which forwards to the backend
+      // In production, we use the direct backend URL
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const host = import.meta.env.DEV ? window.location.host : 'aura-vibe.onrender.com';
       const wsUrl = `${protocol}//${host}/ws/${sessionCode}`;
-      
+
       console.log(`🔌 Connecting to WebSocket: ${wsUrl}`);
       ws.value = new WebSocket(wsUrl);
 
@@ -36,12 +38,21 @@ export function useWebSocket(sessionCode: string) {
         try {
           const data = JSON.parse(event.data);
           console.log('📨 WebSocket message received:', data);
-          
+
           // Handle different message types
-          if (data.type === 'queue_updated') {
+          if (data.type === 'queue_updated' || data.type === 'vote_updated' || data.type === 'queue_reordered') {
             // Dispatch custom event for queue updates
-            window.dispatchEvent(new CustomEvent('queue-updated', { 
-              detail: data 
+            window.dispatchEvent(new CustomEvent('queue-updated', {
+              detail: data
+            }));
+          } else if (data.type === 'playback_control') {
+            // Dispatch custom event for playback controls
+             window.dispatchEvent(new CustomEvent('playback-control', {
+              detail: data
+            }));
+          } else if (data.type === 'playback_sync') {
+             window.dispatchEvent(new CustomEvent('playback-sync', {
+              detail: data
             }));
           } else if (data.type === 'user_joined') {
             toast.info('User Joined', `${data.username || 'A user'} joined the session`);
@@ -56,7 +67,7 @@ export function useWebSocket(sessionCode: string) {
       ws.value.onclose = (event) => {
         console.log(`🔌 WebSocket disconnected: ${event.code}`);
         isConnected.value = false;
-        
+
         // Only attempt reconnect if it wasn't a normal closure
         if (event.code !== 1000 && reconnectAttempts.value < maxReconnectAttempts) {
           attemptReconnect();
@@ -66,7 +77,10 @@ export function useWebSocket(sessionCode: string) {
       ws.value.onerror = (error) => {
         console.error('❌ WebSocket error:', error);
         isConnected.value = false;
-        toast.error('Connection Error', 'Failed to connect to live updates');
+        // Don't show toast on every error retry, it's annoying
+        if (reconnectAttempts.value === maxReconnectAttempts) {
+             toast.error('Connection Error', 'Failed to connect to live updates');
+        }
       };
 
     } catch (error) {
@@ -79,9 +93,9 @@ export function useWebSocket(sessionCode: string) {
     if (reconnectAttempts.value < maxReconnectAttempts) {
       reconnectAttempts.value++;
       const delay = Math.min(1000 * reconnectAttempts.value, 10000); // Exponential backoff max 10s
-      
+
       console.log(`🔄 Reconnecting... Attempt ${reconnectAttempts.value} in ${delay}ms`);
-      
+
       reconnectInterval.value = window.setTimeout(() => {
         connect();
       }, delay);
@@ -96,12 +110,12 @@ export function useWebSocket(sessionCode: string) {
       clearTimeout(reconnectInterval.value);
       reconnectInterval.value = null;
     }
-    
+
     if (ws.value) {
       ws.value.close(1000, 'Normal closure');
       ws.value = null;
     }
-    
+
     isConnected.value = false;
     console.log('🔌 WebSocket manually disconnected');
   };
