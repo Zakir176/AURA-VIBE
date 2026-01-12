@@ -37,6 +37,8 @@ yarn.lock
 *.pyc
 *.pyo
 __pycache__/
+aura_vibe.db
+session.json
 
 # Virtual environment folders for Python
 venv/
