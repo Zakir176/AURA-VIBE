@@ -50,7 +50,18 @@ class JamendoClient:
                 return None, "Failed to decode response from Jamendo API."
 
             if data.get("headers", {}).get("status") == "success":
-                return data.get("results", []), None
+                results = data.get("results", [])
+                formatted_tracks = []
+                for track in results:
+                    if track.get("audio"):
+                        formatted_tracks.append({
+                            "id": track.get("id"),
+                            "name": track.get("name"),
+                            "artist_name": track.get("artist_name"),
+                            "audio": track.get("audio"),
+                            "image": track.get("image"),
+                        })
+                return formatted_tracks, None
             else:
                 error_message = data.get("headers", {}).get("error_message", "Unknown error")
                 logger.error(f"Jamendo API error: {error_message}")
