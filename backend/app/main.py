@@ -12,7 +12,7 @@ app = FastAPI()
 # CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:8000", "https://aura-vibe.onrender.com"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:8000", "https://aura-vibe.onrender.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
