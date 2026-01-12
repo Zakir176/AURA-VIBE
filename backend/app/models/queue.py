@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
-from app.database import Base
+from app.core.database import Base
 from pydantic import BaseModel
 from typing import List
 
@@ -10,6 +10,7 @@ class Queue(Base):
     session_code = Column(String, ForeignKey("sessions.session_code"))
     song_title = Column(String)
     song_url = Column(String)
+    image = Column(String)
     added_by = Column(String)
     votes = Column(Integer, default=0)
     played = Column(Boolean, default=False)
@@ -21,6 +22,19 @@ class QueueCreate(BaseModel):
     song_title: str
     song_url: str
     added_by: str
+
+class SongData(BaseModel):
+    id: str
+    name: str
+    artist_name: str
+    audio: str
+    image: str
+    added_by: str
+
+class AddSongRequest(BaseModel):
+    session_code: str
+    song_data: SongData
+
 
 class QueueReorder(BaseModel):
     session_code: str
