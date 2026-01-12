@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
-from app.database import Base
+from app.core.database import Base
 
 class UserVote(Base):
     __tablename__ = "user_votes"
