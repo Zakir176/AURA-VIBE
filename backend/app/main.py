@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import session, queue, jamendo
-from app.websocket import router as ws_router
-from app.database import Base, engine
+from app.core.websocket import router as ws_router
+from app.core.database import Base, engine
 
 # Initialize database
 Base.metadata.create_all(bind=engine)
