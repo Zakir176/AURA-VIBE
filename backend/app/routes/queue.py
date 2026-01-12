@@ -1,26 +1,27 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import update
-from app.database import get_db
-from app.models.queue import Queue, QueueCreate, QueueReorder
+from app.core.database import get_db
+from app.models.queue import Queue, QueueCreate, QueueReorder, AddSongRequest
 from app.models.session import Session as SessionModel
-from app.websocket import broadcast_to_session
+from app.core.websocket import broadcast_to_session
 import logging
 
 router = APIRouter(tags=["queue"])
 logger = logging.getLogger(__name__)
 
 @router.post("/add")
-async def add_to_queue(item: QueueCreate, db: Session = Depends(get_db)):
+async def add_to_queue(item: AddSongRequest, db: Session = Depends(get_db)):
     db_session = db.query(SessionModel).filter(SessionModel.session_code == item.session_code).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
     
     db_item = Queue(
         session_code=item.session_code,
-        song_title=item.song_title,
-        song_url=item.song_url,
-        added_by=item.added_by,
+        song_title=item.song_data.name,
+        song_url=item.song_data.audio,
+        image=item.song_data.image,
+        added_by=item.song_data.added_by,
         votes=0,
         played=False
     )
