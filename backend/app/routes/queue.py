@@ -19,6 +19,7 @@ async def add_to_queue(item: AddSongRequest, db: Session = Depends(get_db)):
     
     db_item = Queue(
         session_code=item.session_code,
+        song_id=item.song_data.id,
         song_title=item.song_data.name,
         artist_name=item.song_data.artist_name,
         song_url=item.song_data.audio,

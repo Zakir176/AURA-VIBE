@@ -64,7 +64,7 @@
         <transition-group name="list" tag="div" class="space-y-3">
           <div
             v-for="(song, index) in queue"
-            :key="song.id"
+            :key="song.queue_id"
             class="group bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-3 transition-all hover:shadow-md hover:border-gray-200 active:scale-[0.98]"
           >
             <div class="relative flex-shrink-0">
@@ -85,7 +85,7 @@
               </div>
             </div>
             
-            <button @click="upvote(song.id)" class="flex flex-col items-center justify-center w-10 h-10 rounded-full bg-gray-50 text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
+            <button @click="upvote(song.queue_id)" class="flex flex-col items-center justify-center w-10 h-10 rounded-full bg-gray-50 text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
               <span class="font-bold text-xs -mt-1">{{ song.votes || 0 }}</span>
             </button>
@@ -128,7 +128,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { queueAPI, sessionAPI, Song, JamendoSong } from '@/services/api'
+import { queueAPI, sessionAPI } from '@/services/api'
+import type { Song, JamendoSong } from '@/services/api'
 import { getOrCreateUserId } from '@/utils/uuid'
 import { useWebSocket } from '@/composables/useWebSocket'
 import { useSessionStore } from '@/stores/session'
@@ -208,35 +209,30 @@ const onSongSelected = (jamendoSong: JamendoSong) => {
 // --- Player Controls ---
 
 const handleNext = () => {
-  if (queue.value.length > 1) {
-    // Note: This is a simple client-side queue rotation.
-    // For a more robust system, the "host" would control the queue
-    // and broadcast the new song to all clients.
-    const songToEnd = queue.value.shift()
-    if (songToEnd) {
-      queue.value.push(songToEnd)
+  if (isHost.value) {
+    if (queue.value.length > 1) {
+      sendMessage({ type: 'playback_control', action: 'next' })
+    } else {
+      toast.info("End of Queue", "No other songs to play.")
     }
-    sendMessage({ type: 'playback_control', action: 'next' })
-  } else {
-    toast.info("End of Queue", "No other songs to play.")
   }
 }
 
 const handlePrevious = () => {
-  if (queue.value.length > 1) {
-    const songToStart = queue.value.pop()
-    if (songToStart) {
-      queue.value.unshift(songToStart)
+  if (isHost.value) {
+    if (queue.value.length > 1) {
+      sendMessage({ type: 'playback_control', action: 'previous' })
+    } else {
+      toast.info("Start of Queue", "No previous song to play.")
     }
-    sendMessage({ type: 'playback_control', action: 'previous' })
-  } else {
-    toast.info("Start of Queue", "No previous song to play.")
   }
 }
 
 const handleTrackEnded = () => {
-  console.log('Track has ended, playing next.')
-  handleNext()
+  if (isHost.value) {
+    console.log('Track has ended, playing next.')
+    handleNext()
+  }
 }
 
 const upvote = async (songId: number) => {
@@ -274,6 +270,27 @@ const onProgress = (percent: number, duration: number, currentTime: number) => {
     sendMessage({ type: 'playback_sync', action: 'progress', progress: percent, duration, currentTime })
 }
 
+const handlePlaybackControl = (event: Event) => {
+  const customEvent = event as CustomEvent;
+  const data = customEvent.detail;
+  
+  if (data.action === 'next') {
+    if (queue.value.length > 1) {
+      const songToEnd = queue.value.shift()
+      if (songToEnd) {
+        queue.value.push(songToEnd)
+      }
+    }
+  } else if (data.action === 'previous') {
+    if (queue.value.length > 1) {
+      const songToStart = queue.value.pop()
+      if (songToStart) {
+        queue.value.unshift(songToStart)
+      }
+    }
+  }
+}
+
 const handlePlaybackSync = (event: Event) => {
   const customEvent = event as CustomEvent;
   const data = customEvent.detail;
@@ -308,12 +325,14 @@ onMounted(() => {
   connect()
   window.addEventListener('queue-updated', handleQueueUpdate)
   window.addEventListener('playback-sync', handlePlaybackSync)
+  window.addEventListener('playback_control', handlePlaybackControl)
 })
 
 onUnmounted(() => {
   disconnect()
   window.removeEventListener('queue-updated', handleQueueUpdate)
   window.removeEventListener('playback-sync', handlePlaybackSync)
+  window.removeEventListener('playback_control', handlePlaybackControl)
 })
 </script>
 

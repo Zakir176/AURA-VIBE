@@ -7,6 +7,7 @@ from typing import List
 class Queue(Base):
     __tablename__ = "queue"
     id = Column(Integer, primary_key=True, index=True)
+    song_id = Column(String, nullable=False)
     session_code = Column(String, ForeignKey("sessions.session_code"), nullable=False)
     song_title = Column(String, nullable=False)
     artist_name = Column(String, nullable=True) # Added field
@@ -22,6 +23,7 @@ class Queue(Base):
 # For API Responses to match frontend expectations
 class SongResponse(BaseModel):
     id: int
+    song_id: str
     name: str = Field(alias='song_title')
     artist_name: str | None = None
     audio: str = Field(alias='song_url')
