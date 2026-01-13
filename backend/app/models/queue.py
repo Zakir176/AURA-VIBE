@@ -18,6 +18,20 @@ class Queue(Base):
     played = Column(Boolean, default=False, nullable=False)
     position = Column(Integer, default=0, nullable=False)
 
+    def to_dict(self):
+        return {
+            "id": self.song_id, # Jamendo ID
+            "queue_id": self.id, # Queue DB ID
+            "name": self.song_title,
+            "artist_name": self.artist_name,
+            "audio": self.song_url,
+            "image": self.image,
+            "added_by": self.added_by,
+            "votes": self.votes,
+            "played": self.played,
+            "position": self.position,
+        }
+
 # Pydantic Models (Schemas)
 
 # For API Responses to match frontend expectations
