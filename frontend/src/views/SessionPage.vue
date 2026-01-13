@@ -275,16 +275,15 @@ const onProgress = (percent: number, duration: number, currentTime: number) => {
 }
 
 const handlePlaybackSync = (event: Event) => {
-  if (isHost.value) return; 
   const customEvent = event as CustomEvent;
   const data = customEvent.detail;
+  console.log('SessionPage: Received playback-sync event', data, 'isHost:', isHost.value);
+  
+  if (isHost.value) return; 
   
   if (audioPlayerRef.value) {
     const { action, progress, duration, currentTime } = data;
-    
-    // Check if audioPlayerRef.value has setPlaybackState method (it should via defineExpose)
-    // Note: TypeScript might not know about expose methods on ref unless typed correctly
-    // But we typed it as InstanceType<typeof AudioPlayer>
+    console.log('SessionPage: Updating AudioPlayer state', action);
     
     if (action === 'play') {
         audioPlayerRef.value.setPlaybackState(true, progress, currentTime, duration);
@@ -298,6 +297,8 @@ const handlePlaybackSync = (event: Event) => {
     } else if (action === 'progress') {
         audioPlayerRef.value.setPlaybackState(true, progress, currentTime, duration);
     }
+  } else {
+    console.warn('SessionPage: AudioPlayer ref is missing');
   }
 }
 
