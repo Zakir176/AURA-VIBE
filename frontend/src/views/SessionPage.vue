@@ -25,7 +25,7 @@
       <div class="w-10 flex justify-end">
           <div class="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded-full">
             <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-            <span class="text-xs font-bold text-gray-600">4</span>
+            <span class="text-xs font-bold text-gray-600">{{ participantCount }}</span>
           </div>
       </div>
     </header>
@@ -64,7 +64,7 @@
         <transition-group name="list" tag="div" class="space-y-3">
           <div
             v-for="(song, index) in queue"
-            :key="song.id"
+            :key="song.queue_id"
             class="group bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-3 transition-all hover:shadow-md hover:border-gray-200 active:scale-[0.98]"
           >
             <div class="relative flex-shrink-0">
@@ -85,10 +85,15 @@
               </div>
             </div>
             
-            <button @click="upvote(song.id)" class="flex flex-col items-center justify-center w-10 h-10 rounded-full bg-gray-50 text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-              <span class="font-bold text-xs -mt-1">{{ song.votes || 0 }}</span>
-            </button>
+            <div class="flex flex-col items-center space-y-1">
+              <button data-testid="upvote-btn" @click="upvote(song.queue_id)" class="p-1 text-gray-400 hover:text-blue-500 transition-colors rounded-full hover:bg-blue-50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+              </button>
+              <span class="font-bold text-xs text-gray-600">{{ song.votes || 0 }}</span>
+              <button data-testid="downvote-btn" @click="downvote(song.queue_id)" class="p-1 text-gray-400 hover:text-red-500 transition-colors rounded-full hover:bg-red-50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+            </div>
           </div>
         </transition-group>
         
@@ -128,7 +133,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { queueAPI, sessionAPI, Song, JamendoSong } from '@/services/api'
+import { queueAPI, sessionAPI } from '@/services/api'
+import type { Song, JamendoSong } from '@/services/api'
 import { getOrCreateUserId } from '@/utils/uuid'
 import { useWebSocket } from '@/composables/useWebSocket'
 import { useSessionStore } from '@/stores/session'
@@ -146,6 +152,7 @@ const queue = ref<Song[]>([])
 const loading = ref(false)
 const addingSong = ref(false)
 const isHost = ref(false)
+const participantCount = ref(0)
 const audioPlayerRef = ref<InstanceType<typeof AudioPlayer> | null>(null)
 
 const currentSong = computed(() => queue.value[0] || null)
@@ -208,30 +215,11 @@ const onSongSelected = (jamendoSong: JamendoSong) => {
 // --- Player Controls ---
 
 const handleNext = () => {
-  if (queue.value.length > 1) {
-    // Note: This is a simple client-side queue rotation.
-    // For a more robust system, the "host" would control the queue
-    // and broadcast the new song to all clients.
-    const songToEnd = queue.value.shift()
-    if (songToEnd) {
-      queue.value.push(songToEnd)
-    }
-    sendMessage({ type: 'playback_control', action: 'next' })
-  } else {
-    toast.info("End of Queue", "No other songs to play.")
-  }
+  sendMessage({ type: 'playback_control', action: 'next', user_id: userId.value })
 }
 
 const handlePrevious = () => {
-  if (queue.value.length > 1) {
-    const songToStart = queue.value.pop()
-    if (songToStart) {
-      queue.value.unshift(songToStart)
-    }
-    sendMessage({ type: 'playback_control', action: 'previous' })
-  } else {
-    toast.info("Start of Queue", "No previous song to play.")
-  }
+  sendMessage({ type: 'playback_control', action: 'previous', user_id: userId.value })
 }
 
 const handleTrackEnded = () => {
@@ -243,6 +231,18 @@ const upvote = async (songId: number) => {
   console.log(`Upvoting song ${songId}`)
   try {
     await queueAPI.vote(sessionCode, songId, true, userId.value)
+    // Queue update will happen via WebSocket 'vote_updated' event
+    toast.success('Voted!', 'Your vote has been recorded.')
+  } catch (error: any) {
+    console.error('Failed to vote:', error)
+    toast.error('Vote Failed', error.response?.data?.detail || 'Could not record vote.')
+  }
+}
+
+const downvote = async (songId: number) => {
+  console.log(`Downvoting song ${songId}`)
+  try {
+    await queueAPI.vote(sessionCode, songId, false, userId.value)
     // Queue update will happen via WebSocket 'vote_updated' event
     toast.success('Voted!', 'Your vote has been recorded.')
   } catch (error: any) {
@@ -272,6 +272,22 @@ const onSeek = (percent: number, progress: number, duration: number, currentTime
 
 const onProgress = (percent: number, duration: number, currentTime: number) => {
     sendMessage({ type: 'playback_sync', action: 'progress', progress: percent, duration, currentTime })
+}
+
+const handlePlaybackControl = (event: Event) => {
+  const customEvent = event as CustomEvent;
+  const data = customEvent.detail;
+  
+  if (data.type === 'error') {
+    toast.error('Playback Control Error', data.message);
+  } else if (data.type === 'info') {
+    toast.info('Info', data.message);
+  }
+}
+
+const handleParticipantCountUpdated = (event: Event) => {
+  const customEvent = event as CustomEvent;
+  participantCount.value = customEvent.detail.count;
 }
 
 const handlePlaybackSync = (event: Event) => {
@@ -308,12 +324,16 @@ onMounted(() => {
   connect()
   window.addEventListener('queue-updated', handleQueueUpdate)
   window.addEventListener('playback-sync', handlePlaybackSync)
+  window.addEventListener('playback_control', handlePlaybackControl)
+  window.addEventListener('participant_count_updated', handleParticipantCountUpdated)
 })
 
 onUnmounted(() => {
   disconnect()
   window.removeEventListener('queue-updated', handleQueueUpdate)
   window.removeEventListener('playback-sync', handlePlaybackSync)
+  window.removeEventListener('playback_control', handlePlaybackControl)
+  window.removeEventListener('participant_count_updated', handleParticipantCountUpdated)
 })
 </script>
 

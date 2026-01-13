@@ -93,9 +93,15 @@ export interface AddSongRequest {
   song_data: AddSongPayload
 }
 
-export interface Song extends AddSongPayload {
-  // Any additional properties for a song in the queue can go here
-  // For now, it extends AddSongPayload which already contains all necessary fields
+export interface Song {
+  id: string; // jamendo id
+  queue_id: number; // queue id
+  name: string;
+  artist_name: string;
+  audio: string;
+  image: string;
+  added_by: string;
+  votes: number;
 }
 
 export const sessionAPI = {
@@ -150,8 +156,17 @@ export const queueAPI = {
 
   getQueue: async (sessionCode: string): Promise<Song[]> => {
     try {
-      const response = await api.get<Song[]>(`/queue/list/${sessionCode}`)
-      return response.data
+      const response = await api.get<any[]>(`/queue/list/${sessionCode}`)
+      return response.data.map(item => ({
+          id: item.song_id,
+          queue_id: item.id,
+          name: item.name,
+          artist_name: item.artist_name,
+          audio: item.audio,
+          image: item.image,
+          added_by: item.added_by,
+          votes: item.votes
+      }));
     } catch (error) {
       // Handle errors specifically for getting the queue if needed
       throw error
