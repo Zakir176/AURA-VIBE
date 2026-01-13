@@ -36,3 +36,10 @@ async def join_session(join: SessionJoin, db: Session = Depends(get_db)):
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
     return {"message": f"User {join.user_id} joined session {join.session_code}", "host_id": db_session.host_id}
+
+@router.get("/{session_code}", response_model=SessionOut)
+async def get_session(session_code: str, db: Session = Depends(get_db)):
+    db_session = db.query(Session).filter(Session.session_code == session_code).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return SessionOut(session_code=db_session.session_code, qr_code="", host_id=db_session.host_id)

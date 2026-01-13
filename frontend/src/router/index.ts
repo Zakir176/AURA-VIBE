@@ -5,7 +5,8 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'Landing',
-    component: () => import('@/views/LandingPage.vue')
+    component: () => import('@/views/LandingPage.vue'),
+    meta: { hideHeader: true }
   },
   {
     path: '/create',
@@ -21,7 +22,8 @@ const routes: RouteRecordRaw[] = [
     path: '/session/:sessionCode',
     name: 'SessionPage',
     component: () => import('@/views/SessionPage.vue'),
-    props: true
+    props: true,
+    meta: { hideHeader: true }
   },
   {
     path: '/login',

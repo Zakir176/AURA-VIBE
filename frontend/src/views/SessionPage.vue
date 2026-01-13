@@ -1,113 +1,126 @@
 <template>
-  <div class="min-h-screen bg-gray-50 font-sans text-gray-800">
+  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 font-sans text-gray-800 pb-32">
     <!-- Header -->
-    <header class="flex items-center justify-between px-4 py-5 bg-white border-b border-gray-200 shadow-sm fixed w-full top-0 z-10">
-      <router-link to="/" class="text-gray-600 hover:text-gray-800 transition-colors">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-label="Back"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+    <header class="flex items-center justify-between px-4 py-4 bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-20">
+      <router-link to="/" class="p-2 -ml-2 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
       </router-link>
-      <div class="text-center">
-        <h1 class="text-lg font-semibold flex items-center">
-          Room #{{ sessionCode }}
-          <button @click="copySessionCode" class="ml-2 text-gray-400 hover:text-blue-500">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v2M8 7h12"></path></svg>
-          </button>
-        </h1>
-        <div class="flex items-center justify-center space-x-1.5 text-xs text-green-600 font-bold">
-          <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-          <span>Live Session</span>
+      
+      <div class="flex flex-col items-center">
+        <div class="flex items-center space-x-2">
+            <h1 class="text-sm font-bold text-gray-900 tracking-tight">ROOM #{{ sessionCode }}</h1>
+            <button @click="copySessionCode" class="text-gray-400 hover:text-blue-500 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v2M8 7h12"></path></svg>
+            </button>
+        </div>
+        <div class="flex items-center space-x-1.5 mt-0.5">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+          </span>
+          <span class="text-[10px] font-bold text-green-600 uppercase tracking-wider">Live</span>
         </div>
       </div>
-      <button class="bg-gray-100 rounded-full px-4 py-2 text-sm font-semibold flex items-center space-x-2">
-        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-        <span>4</span>
-      </button>
+      
+      <div class="w-10 flex justify-end">
+          <div class="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded-full">
+            <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            <span class="text-xs font-bold text-gray-600">4</span>
+          </div>
+      </div>
     </header>
 
     <!-- Main Content -->
-    <main class="pt-24 pb-28">
-      <div class="max-w-md mx-auto px-4">
-        <!-- Currently Playing -->
-        <div class="text-center mb-8">
-          <div class="relative w-full aspect-square rounded-3xl shadow-2xl overflow-hidden mb-6">
-            <img v-if="currentSong" :src="currentSong.image" alt="Album Art" class="w-full h-full object-cover">
-            <div v-else class="w-full h-full bg-gray-200 flex items-center justify-center">
-              <span class="text-gray-500">No song playing</span>
-            </div>
-          </div>
-          <h2 class="text-3xl font-extrabold">{{ currentSong?.name || 'No song playing' }}</h2>
-          <p class="text-lg text-gray-500 font-medium">{{ currentSong?.artist_name || 'No artist' }}</p>
-
-          <!-- Progress Bar (will be handled by AudioPlayer later) -->
-          <div class="mt-6">
-            <div class="h-2 bg-gray-200 rounded-full">
-              <div class="h-2 bg-blue-500 rounded-full" style="width: 0%;"></div>
-            </div>
-            <div class="flex justify-between text-xs font-mono text-gray-500 mt-1.5">
-              <span>0:00</span>
-              <span>0:00</span>
-            </div>
-          </div>
-
-          <!-- Playback Controls (will be handled by AudioPlayer later) -->
-          <div class="flex items-center justify-center space-x-8 mt-6">
-            <button class="text-gray-500 hover:text-gray-800 transition-colors">
-              <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M8.445 14.832A1 1 0 0010 14.832V5.168a1 1 0 00-1.555-.832L4.12 8.168a1 1 0 000 1.664l4.325 3.001zM11.555 4.336a1 1 0 011.555.832v9.664a1 1 0 01-1.555.832l-4.325-3.001a1 1 0 010-1.664l4.325-3.001z"></path></svg>
-            </button>
-            <button @click="togglePlayPause" class="w-20 h-20 bg-blue-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-blue-600 transition-all scale-105">
-              <svg v-if="!isPlaying" class="w-10 h-10 ml-1" fill="currentColor" viewBox="0 0 20 20"><path d="M4.018 15.59a1 1 0 001.414.038l8.36-7.522a1 1 0 000-1.414l-8.36-7.522a1 1 0 00-1.452 1.376L5.61 8 4.018 9.59a1 1 0 000 1.414z"></path></svg>
-              <svg v-else class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd"></path></svg>
-            </button>
-            <button class="text-gray-500 hover:text-gray-800 transition-colors">
-              <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M4.12 5.168a1 1 0 00-1.555.832v8.001a1 1 0 001.555.832L8.445 12l-4.325-3.001zM15.88 5.168a1 1 0 00-1.555.832v8.001a1 1 0 001.555.832L20.205 12l-4.325-3.001z"></path></svg>
-            </button>
-          </div>
+    <main class="max-w-md mx-auto px-4 pt-6">
+      
+      <!-- Currently Playing Card -->
+      <div class="mb-8">
+        <div class="relative w-full aspect-square rounded-3xl shadow-2xl overflow-hidden mb-6 bg-white ring-1 ring-black/5">
+            <transition name="fade" mode="out-in">
+                <img v-if="currentSong" :key="currentSong.id" :src="currentSong.image" alt="Album Art" class="w-full h-full object-cover">
+                <div v-else class="w-full h-full bg-gray-50 flex flex-col items-center justify-center text-gray-400 space-y-4">
+                    <svg class="w-16 h-16 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                    <span class="font-medium">Queue is empty</span>
+                </div>
+            </transition>
+            
+            <!-- Overlay Gradient for text readability if needed -->
+            <div v-if="currentSong" class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
         </div>
-        <!-- Up Next -->
-        <div>
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold">Up Next</h3>
-            <span class="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">{{ queue.length }} songs</span>
-          </div>
-          <div class="space-y-3">
-            <div
-              v-for="song in queue"
-              :key="song.id"
-              class="bg-white p-3 rounded-xl shadow-sm flex items-center space-x-4 transition-all hover:shadow-md"
-            >
-              <img :src="song.image" alt="Song thumbnail" class="w-16 h-16 rounded-lg object-cover">
-              <div class="flex-grow">
-                <p class="font-bold text-lg">{{ song.name }}</p>
-                <p class="text-gray-500">{{ song.artist_name }}</p>
-                <p class="text-xs text-gray-400 mt-1">
-                  <svg class="w-3 h-3 inline -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  Added by {{ song.added_by }}
-                </p>
-              </div>
-              <button @click="upvote(song.id)" class="flex flex-col items-center justify-center text-gray-500 hover:text-blue-500 p-2">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-                <span class="font-bold text-sm">{{ song.votes || 0 }}</span>
-              </button>
+        
+        <div class="text-center space-y-1">
+          <h2 class="text-2xl md:text-3xl font-black text-gray-900 tracking-tight leading-tight">{{ currentSong?.name || 'Ready to Vibe?' }}</h2>
+          <p class="text-lg text-gray-500 font-medium">{{ currentSong?.artist_name || 'Add a song to start' }}</p>
+        </div>
+      </div>
+
+      <!-- Up Next Section -->
+      <div class="mb-24">
+        <div class="flex justify-between items-end mb-4 px-1">
+          <h3 class="text-lg font-bold text-gray-900">Up Next</h3>
+          <span class="text-xs font-bold text-gray-500 bg-gray-200/50 px-2 py-1 rounded-md">{{ queue.length }} tracks</span>
+        </div>
+        
+        <transition-group name="list" tag="div" class="space-y-3">
+          <div
+            v-for="(song, index) in queue"
+            :key="song.id"
+            class="group bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-3 transition-all hover:shadow-md hover:border-gray-200 active:scale-[0.98]"
+          >
+            <div class="relative flex-shrink-0">
+                 <img :src="song.image" alt="Song thumbnail" class="w-14 h-14 rounded-xl object-cover shadow-sm">
+                 <div class="absolute -top-2 -left-2 w-6 h-6 bg-gray-900 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                     {{ index + 1 }}
+                 </div>
             </div>
+            
+            <div class="flex-grow min-w-0">
+              <p class="font-bold text-gray-900 truncate text-base">{{ song.name }}</p>
+              <p class="text-sm text-gray-500 truncate">{{ song.artist_name }}</p>
+              <div class="flex items-center mt-1 space-x-1">
+                  <div class="w-4 h-4 rounded-full bg-gradient-to-tr from-blue-400 to-purple-500 flex items-center justify-center text-[8px] text-white font-bold">
+                      {{ song.added_by.slice(0, 1).toUpperCase() }}
+                  </div>
+                  <span class="text-xs text-gray-400">added by {{ song.added_by.slice(0, 8) }}...</span>
+              </div>
+            </div>
+            
+            <button @click="upvote(song.id)" class="flex flex-col items-center justify-center w-10 h-10 rounded-full bg-gray-50 text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+              <span class="font-bold text-xs -mt-1">{{ song.votes || 0 }}</span>
+            </button>
           </div>
+        </transition-group>
+        
+        <div v-if="queue.length === 0 && !currentSong" class="text-center py-10 opacity-50">
+            <p class="text-gray-400 text-sm">The queue is empty. Be the DJ!</p>
         </div>
       </div>
     </main>
 
-    <!-- Add Song Bar -->
-    <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200">
-      <div class="max-w-md mx-auto flex items-center space-x-3">
-        <SongSearchBar @select-song="onSongSelected" class="flex-grow" />
-        <button class="w-12 h-12 flex-shrink-0 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-200">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-        </button>
+    <!-- Floating Search Bar -->
+    <div 
+      class="fixed left-0 right-0 p-4 transition-all duration-500 z-40"
+      :class="currentSong ? 'bottom-[80px] md:bottom-[88px]' : 'bottom-0'"
+    >
+      <div class="max-w-md mx-auto shadow-2xl rounded-full">
+        <SongSearchBar @select-song="onSongSelected" />
       </div>
     </div>
+    
+    <!-- Audio Player -->
     <AudioPlayer
       v-if="currentSong"
+      ref="audioPlayerRef"
       :current-track="currentSong"
-      :playlist="queue"
+      :is-host="isHost"
       @track-ended="handleTrackEnded"
-      @play-status-changed="handlePlayStatusChanged"
+      @next="handleNext"
+      @previous="handlePrevious"
+      @play="onPlay"
+      @pause="onPause"
+      @seek="onSeek"
+      @progress="onProgress"
     />
   </div>
 </template>
@@ -115,7 +128,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { queueAPI, Song, JamendoSong } from '@/services/api'
+import { queueAPI, sessionAPI, Song, JamendoSong } from '@/services/api'
 import { getOrCreateUserId } from '@/utils/uuid'
 import { useWebSocket } from '@/composables/useWebSocket'
 import { useSessionStore } from '@/stores/session'
@@ -132,13 +145,23 @@ const userId = ref(getOrCreateUserId())
 const queue = ref<Song[]>([])
 const loading = ref(false)
 const addingSong = ref(false)
-const player = ref<InstanceType<typeof AudioPlayer> | null>(null)
-const isPlaying = ref(false)
+const isHost = ref(false)
+const audioPlayerRef = ref<InstanceType<typeof AudioPlayer> | null>(null)
 
 const currentSong = computed(() => queue.value[0] || null)
 
-
 const { isConnected, connect, disconnect, sendMessage } = useWebSocket(sessionCode)
+
+const fetchSessionDetails = async () => {
+  try {
+    const session = await sessionAPI.getSession(sessionCode)
+    if (session.host_id === userId.value) {
+      isHost.value = true
+    }
+  } catch (error) {
+    console.error('Failed to fetch session details:', error)
+  }
+}
 
 const fetchQueue = async () => {
   loading.value = true
@@ -169,6 +192,7 @@ const addSong = async (jamendoSong: JamendoSong) => {
     }
     await queueAPI.addSong(sessionCode, payload)
     toast.success('Song Added!', `"${jamendoSong.name}" is now in the queue.`)
+    // The queue will be updated via websocket event
   } catch (error: any) {
     console.error('Failed to add song:', error)
     toast.error('Add Song Failed', error.response?.data?.detail || 'Could not add song.')
@@ -181,37 +205,49 @@ const onSongSelected = (jamendoSong: JamendoSong) => {
   addSong(jamendoSong)
 }
 
-const togglePlayPause = () => {
-  if (isPlaying.value) {
-    player.value?.pause()
-    sendMessage({ type: 'playback_control', action: 'pause' }) // Notify others of pause
+// --- Player Controls ---
+
+const handleNext = () => {
+  if (queue.value.length > 1) {
+    // Note: This is a simple client-side queue rotation.
+    // For a more robust system, the "host" would control the queue
+    // and broadcast the new song to all clients.
+    const songToEnd = queue.value.shift()
+    if (songToEnd) {
+      queue.value.push(songToEnd)
+    }
+    sendMessage({ type: 'playback_control', action: 'next' })
   } else {
-    player.value?.play()
-    sendMessage({ type: 'playback_control', action: 'play' }) // Notify others of play
+    toast.info("End of Queue", "No other songs to play.")
   }
-  // isPlaying will be updated by handlePlayStatusChanged
+}
+
+const handlePrevious = () => {
+  if (queue.value.length > 1) {
+    const songToStart = queue.value.pop()
+    if (songToStart) {
+      queue.value.unshift(songToStart)
+    }
+    sendMessage({ type: 'playback_control', action: 'previous' })
+  } else {
+    toast.info("Start of Queue", "No previous song to play.")
+  }
 }
 
 const handleTrackEnded = () => {
-  // Logic to play next song in the queue
-  // For now, just log and reset isPlaying
-  console.log('Track has ended.')
-  // isPlaying.value = false; // AudioPlayer will emit play-status-changed
-  // You would typically advance the queue here
-  // sendMessage({ type: 'track_ended', session_code: sessionCode })
+  console.log('Track has ended, playing next.')
+  handleNext()
 }
 
-const handlePlayStatusChanged = (status: boolean) => {
-  isPlaying.value = status
-}
-
-const upvote = (songId: number) => {
+const upvote = async (songId: number) => {
   console.log(`Upvoting song ${songId}`)
-  // This would typically send a message via WebSocket or call an API
-  // e.g., sendMessage({ type: 'vote', song_id: songId })
-  const song = queue.value.find(s => s.id === songId)
-  if (song) {
-    song.votes = (song.votes || 0) + 1
+  try {
+    await queueAPI.vote(sessionCode, songId, true, userId.value)
+    // Queue update will happen via WebSocket 'vote_updated' event
+    toast.success('Voted!', 'Your vote has been recorded.')
+  } catch (error: any) {
+    console.error('Failed to vote:', error)
+    toast.error('Vote Failed', error.response?.data?.detail || 'Could not record vote.')
   }
 }
 
@@ -220,14 +256,91 @@ const copySessionCode = () => {
   toast.success('Copied!', 'Session code copied to clipboard')
 }
 
+// --- Playback Sync ---
+
+const onPlay = (progress: number, duration: number, currentTime: number) => {
+    sendMessage({ type: 'playback_sync', action: 'play', progress, duration, currentTime })
+}
+
+const onPause = (progress: number, duration: number, currentTime: number) => {
+    sendMessage({ type: 'playback_sync', action: 'pause', progress, duration, currentTime })
+}
+
+const onSeek = (percent: number, progress: number, duration: number, currentTime: number) => {
+    sendMessage({ type: 'playback_sync', action: 'seek', percent, progress, duration, currentTime })
+}
+
+const onProgress = (percent: number, duration: number, currentTime: number) => {
+    sendMessage({ type: 'playback_sync', action: 'progress', progress: percent, duration, currentTime })
+}
+
+const handlePlaybackSync = (event: Event) => {
+  if (isHost.value) return; 
+  const customEvent = event as CustomEvent;
+  const data = customEvent.detail;
+  
+  if (audioPlayerRef.value) {
+    const { action, progress, duration, currentTime } = data;
+    
+    // Check if audioPlayerRef.value has setPlaybackState method (it should via defineExpose)
+    // Note: TypeScript might not know about expose methods on ref unless typed correctly
+    // But we typed it as InstanceType<typeof AudioPlayer>
+    
+    if (action === 'play') {
+        audioPlayerRef.value.setPlaybackState(true, progress, currentTime, duration);
+    } else if (action === 'pause') {
+        audioPlayerRef.value.setPlaybackState(false, progress, currentTime, duration);
+    } else if (action === 'seek') {
+        // Keep current playing state
+        // @ts-ignore
+        const isPlaying = audioPlayerRef.value.isPlaying; 
+        audioPlayerRef.value.setPlaybackState(isPlaying, progress, currentTime, duration);
+    } else if (action === 'progress') {
+        audioPlayerRef.value.setPlaybackState(true, progress, currentTime, duration);
+    }
+  }
+}
+
 onMounted(() => {
+  fetchSessionDetails()
   fetchQueue()
   connect()
   window.addEventListener('queue-updated', handleQueueUpdate)
+  window.addEventListener('playback-sync', handlePlaybackSync)
 })
 
 onUnmounted(() => {
   disconnect()
   window.removeEventListener('queue-updated', handleQueueUpdate)
+  window.removeEventListener('playback-sync', handlePlaybackSync)
 })
 </script>
+
+<style scoped>
+/* List Transitions */
+.list-move,
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.5s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.list-leave-active {
+  position: absolute;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

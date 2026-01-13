@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import update
+from typing import List
 from app.core.database import get_db
-from app.models.queue import Queue, QueueCreate, QueueReorder, AddSongRequest
+from app.models.queue import Queue, QueueReorder, AddSongRequest, SongResponse
 from app.models.session import Session as SessionModel
 from app.core.websocket import broadcast_to_session
 import logging
@@ -19,6 +20,7 @@ async def add_to_queue(item: AddSongRequest, db: Session = Depends(get_db)):
     db_item = Queue(
         session_code=item.session_code,
         song_title=item.song_data.name,
+        artist_name=item.song_data.artist_name,
         song_url=item.song_data.audio,
         image=item.song_data.image,
         added_by=item.song_data.added_by,
@@ -38,12 +40,16 @@ async def add_to_queue(item: AddSongRequest, db: Session = Depends(get_db)):
     
     return {"queue_id": db_item.id, "message": "Song added to queue"}
 
-@router.get("/list/{session_code}")
+@router.get("/list/{session_code}", response_model=List[SongResponse], response_model_by_alias=False)
 async def list_queue(session_code: str, db: Session = Depends(get_db)):
     items = db.query(Queue).filter(
         Queue.session_code == session_code,
-        Queue.played == False
-    ).order_by(Queue.id).all()
+        Queue.played == False,
+        Queue.song_url.isnot(None)
+    ).order_by(Queue.votes.desc(), Queue.id.asc()).all()
+    logger.info(f"Found {len(items)} items in queue for session {session_code}")
+    for item in items:
+        logger.info(f"  - Title: {item.song_title}, URL: {item.song_url}")
     return items
 
 @router.post("/vote")
