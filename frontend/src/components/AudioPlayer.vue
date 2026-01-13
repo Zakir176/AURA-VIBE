@@ -232,6 +232,7 @@ const updateProgress = () => {
 
 // Methods exposed to parent for external control (when not host)
 const setPlaybackState = (playing: boolean, prog: number, current: number, total: number) => {
+    console.log('AudioPlayer: setPlaybackState called', { playing, prog, current, total });
     isPlaying.value = playing;
     progress.value = prog;
     currentTime.value = current;
