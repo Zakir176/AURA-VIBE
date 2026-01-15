@@ -32,6 +32,12 @@ class Queue(Base):
             "position": self.position,
         }
 
+class UserVote(Base):
+    __tablename__ = "user_votes"
+    user_id = Column(String, primary_key=True, index=True)
+    queue_id = Column(Integer, ForeignKey("queue.id"), primary_key=True)
+    vote_type = Column(Boolean, nullable=False) # True for upvote, False for downvote
+
 # Pydantic Models (Schemas)
 
 # For API Responses to match frontend expectations
@@ -44,6 +50,7 @@ class SongResponse(BaseModel):
     image: str
     added_by: str
     votes: int
+    user_vote_type: bool | None = None # True for upvote, False for downvote, None if no vote
 
     class Config:
         from_attributes = True
