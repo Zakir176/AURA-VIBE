@@ -112,11 +112,6 @@ const clear = () => {
 const setupSound = (track: AudioTrack, autoplay: boolean) => {
   clear()
 
-  if (!props.isHost) {
-    // If not host, do not initialize Howl
-    return;
-  }
-
   console.log('Initializing Howl with source:', track.audio)
   sound.value = new Howl({
     src: [track.audio],
@@ -169,20 +164,18 @@ const setupSound = (track: AudioTrack, autoplay: boolean) => {
 
 
 const play = () => {
-  if (props.isHost && sound.value) {
+  if (sound.value) {
     sound.value.play()
   }
 }
 
 const pause = () => {
-  if (props.isHost && sound.value) {
+  if (sound.value) {
     sound.value.pause()
   }
 }
 
 const togglePlayPause = () => {
-  if (!props.isHost) return;
-  
   if (isPlaying.value) {
     pause()
   } else {
@@ -195,8 +188,6 @@ const duration = computed(() => {
 })
 
 const handleSeek = (e: MouseEvent) => {
-  if (!props.isHost) return;
-  
   const target = e.currentTarget as HTMLElement;
   if (target) {
     const percent = e.offsetX / target.offsetWidth;
@@ -205,7 +196,7 @@ const handleSeek = (e: MouseEvent) => {
 }
 
 const seek = (percent: number) => {
-  if (props.isHost && sound.value) {
+  if (sound.value) {
     const dur = duration.value;
     const seekTime = dur * percent;
     sound.value.seek(seekTime)
