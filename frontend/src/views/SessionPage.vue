@@ -81,7 +81,7 @@
                   <div class="w-4 h-4 rounded-full bg-gradient-to-tr from-blue-400 to-purple-500 flex items-center justify-center text-[8px] text-white font-bold">
                       {{ song.added_by.slice(0, 1).toUpperCase() }}
                   </div>
-                  <span class="text-xs text-gray-400">added by {{ song.added_by.slice(0, 8) }}...</span>
+                  <span class="text-xs text-gray-400" :title="song.added_by">added by {{ song.added_by.slice(0, 8) }}...</span>
               </div>
             </div>
             
@@ -173,7 +173,7 @@ const fetchSessionDetails = async () => {
 const fetchQueue = async () => {
   loading.value = true
   try {
-    const songs = await queueAPI.getQueue(sessionCode)
+    const songs = await queueAPI.getQueue(sessionCode, userId.value)
     queue.value = songs
     sessionStore.setQueue(songs)
   } catch (error: any) {

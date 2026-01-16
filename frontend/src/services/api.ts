@@ -102,6 +102,7 @@ export interface Song {
   image: string;
   added_by: string;
   votes: number;
+  user_vote_type?: boolean | null; // True for upvote, False for downvote, null if no vote
 }
 
 export const sessionAPI = {
@@ -154,9 +155,9 @@ export const queueAPI = {
     }
   },
 
-  getQueue: async (sessionCode: string): Promise<Song[]> => {
+  getQueue: async (sessionCode: string, userId: string): Promise<Song[]> => {
     try {
-      const response = await api.get<any[]>(`/queue/list/${sessionCode}`)
+      const response = await api.get<any[]>(`/queue/list/${sessionCode}`, { params: { user_id: userId } })
       return response.data.map(item => ({
           id: item.song_id,
           queue_id: item.id,
@@ -165,7 +166,8 @@ export const queueAPI = {
           audio: item.audio,
           image: item.image,
           added_by: item.added_by,
-          votes: item.votes
+          votes: item.votes,
+          user_vote_type: item.user_vote_type
       }));
     } catch (error) {
       // Handle errors specifically for getting the queue if needed
