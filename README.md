@@ -1,8 +1,14 @@
 # Aura Vibe 
 
-Aura Vibe is a real-time collaborative DJ platform where users join music sessions via QR code or session code to add songs to a shared queue, with a host controlling playback (YouTube API planned for MVP). Built as a monorepo with a FastAPI backend and Vue 3 frontend.
+Aura Vibe is a real-time collaborative DJ platform where users join music sessions via QR code or session code to add songs to a shared queue, with a host controlling playback. Built as a monorepo with a FastAPI backend and Vue 3 frontend, it is an open-source project licensed under MIT.
 
 [![Status](https://img.shields.io/badge/Backend-Complete-green)](https://github.com/yourusername/auravibe) [![Status](https://img.shields.io/badge/Frontend-In_Progress-yellow)](https://github.com/yourusername/auravibe) [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+
+## ?? Overview
+
+In many social or collaborative environments, music selection is often controlled by a single individual, leading to a non-inclusive listening experience. Aura Vibe addresses this by providing a real-time, collaborative DJ platform. It empowers users to collectively shape their auditory environment by joining "sessions" where anyone can queue songs, transforming passive listening into an engaging and democratic group activity.
+
+Designed for social gatherings, collaborative workspaces, and public venues, Aura Vibe aims to create a shared and dynamic musical atmosphere. As an open-source initiative, it also serves as a portfolio piece demonstrating modern web technologies and is not intended for commercial use.
 
 ## ? Features
 
