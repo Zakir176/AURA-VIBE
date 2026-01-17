@@ -1,10 +1,9 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
-import os
 
-app = FastAPI()
+router = APIRouter()
 
-@app.get("/api/spotify/token")
+@router.get("/token")
 async def get_spotify_token(request: Request):
     """Get Spotify access token for Web Playback SDK."""
     access_token = request.cookies.get("sp_access_token")
