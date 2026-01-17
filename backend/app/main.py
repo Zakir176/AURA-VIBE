@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import session, queue, jamendo
+from app.routes import session, queue, jamendo, spotify
 from app.core.websocket import router as ws_router
 from app.core.database import Base, engine
 
@@ -21,6 +21,7 @@ app.add_middleware(
 app.include_router(session.router, prefix="/session")
 app.include_router(queue.router, prefix="/queue")
 app.include_router(jamendo.router, prefix="/jamendo")
+app.include_router(spotify.router, prefix="/spotify")
 app.include_router(ws_router)
 
 @app.get("/")
