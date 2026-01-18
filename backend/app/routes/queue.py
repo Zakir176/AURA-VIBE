@@ -11,7 +11,7 @@ import logging
 router = APIRouter(tags=["queue"])
 logger = logging.getLogger(__name__)
 
-@router.post("/add")
+@router.post("/add", response_model=SongResponse)
 async def add_to_queue(item: AddSongRequest, db: Session = Depends(get_db)):
     db_session = db.query(SessionModel).filter(SessionModel.session_code == item.session_code).first()
     if not db_session:
@@ -39,7 +39,17 @@ async def add_to_queue(item: AddSongRequest, db: Session = Depends(get_db)):
         "action": "added"
     })
     
-    return {"queue_id": db_item.id, "message": "Song added to queue"}
+    return SongResponse(
+        id=db_item.id,
+        song_id=db_item.song_id,
+        name=db_item.song_title,
+        artist_name=db_item.artist_name,
+        audio=db_item.song_url,
+        image=db_item.image,
+        added_by=db_item.added_by,
+        votes=db_item.votes,
+        user_vote_type=None
+    )
 
 @router.get("/list/{session_code}", response_model=List[SongResponse], response_model_by_alias=False)
 async def list_queue(session_code: str, user_id: str, db: Session = Depends(get_db)):
