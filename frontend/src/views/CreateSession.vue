@@ -99,7 +99,11 @@ const createAndStartSession = async () => {
   
   try {
     const hostId = generateUUID()
-    const response = await sessionAPI.createSession(hostId)
+    const response = await sessionAPI.createSession({
+      host_id: hostId,
+      name: sessionName.value,
+      duration: sessionDuration.value,
+    })
     
     // Store session info
     sessionStore.setSession(response.session_code, hostId, response.host_id)

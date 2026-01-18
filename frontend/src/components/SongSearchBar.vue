@@ -53,11 +53,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { jamendoAPI } from '@/services/api';
-import type { JamendoSong } from '@/services/api';
+import { searchAPI } from '@/services/api';
+import type { SearchSong } from '@/services/api';
 
 const searchQuery = ref('');
-const results = ref<JamendoSong[]>([]);
+const results = ref<SearchSong[]>([]);
 const loading = ref(false);
 const error = ref('');
 const debounceTimer = ref<any>(null);
@@ -76,7 +76,7 @@ const onSearch = () => {
     loading.value = true;
     error.value = '';
     try {
-      const response = await jamendoAPI.search(searchQuery.value);
+      const response = await searchAPI.search(searchQuery.value, 'jamendo');
       results.value = response;
     } catch (err: any) {
       error.value = 'Failed to search for songs.';
@@ -86,7 +86,7 @@ const onSearch = () => {
   }, 500);
 };
 
-const selectSong = (song: JamendoSong) => {
+const selectSong = (song: SearchSong) => {
   emit('select-song', song);
   searchQuery.value = '';
   results.value = [];
