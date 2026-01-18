@@ -61,12 +61,16 @@ api.interceptors.response.use(
 
 export interface CreateSessionRequest {
   host_id: string
+  name?: string
+  duration?: string
 }
 
 export interface CreateSessionResponse {
   session_code: string
   qr_code: string
   host_id: string
+  name?: string
+  duration?: string
 }
 
 export interface JoinSessionRequest {
@@ -74,43 +78,10 @@ export interface JoinSessionRequest {
   user_id: string
 }
 
-export interface JoinSessionResponse {
-  message: string
-  host_id: string
-}
-
-export interface AddSongPayload {
-  id: string
-  name: string
-  artist_name: string
-  audio: string
-  image: string
-  added_by: string
-}
-
-export interface AddSongRequest {
-  session_code: string
-  song_data: AddSongPayload
-}
-
-export interface Song {
-  id: string; // jamendo id
-  queue_id: number; // queue id
-  name: string;
-  artist_name: string;
-  audio: string;
-  image: string;
-  added_by: string;
-  votes: number;
-  user_vote_type?: boolean | null; // True for upvote, False for downvote, null if no vote
-}
-
 export const sessionAPI = {
-  createSession: async (hostId: string): Promise<CreateSessionResponse> => {
+  createSession: async (data: CreateSessionRequest): Promise<CreateSessionResponse> => {
     try {
-      const response = await api.post<CreateSessionResponse>('/session/create', {
-        host_id: hostId
-      })
+      const response = await api.post<CreateSessionResponse>('/session/create', data)
       return response.data
     } catch (error) {
       // You can also handle errors specifically for this API call here if needed
@@ -190,27 +161,26 @@ export const queueAPI = {
   }
 }
 
-export interface JamendoSong {
-  id: string; // Jamendo track ID
-  name: string; // Track name
-  artist_name: string; // Artist name
-  audio: string; // URL to the audio file
-  image: string; // URL to the track image/thumbnail
-  // Add other relevant fields if necessary
+export interface SearchSong {
+  id: string; 
+  name: string;
+  artist_name: string;
+  audio: string;
+  image: string;
 }
 
-export const jamendoAPI = {
-  search: async (query: string): Promise<JamendoSong[]> => {
+export const searchAPI = {
+  search: async (query: string, provider: string): Promise<SearchSong[]> => {
     try {
-      const response = await api.get<{ tracks: JamendoSong[] }>('/jamendo/search', {
-        params: { query }
-      })
-      return response.data.tracks
+      const response = await api.get<{ tracks: SearchSong[] }>('/search', {
+        params: { query, provider }
+      });
+      return response.data.tracks;
     } catch (error) {
-      throw error
+      throw error;
     }
   }
-}
+};
 
 
 
