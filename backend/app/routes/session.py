@@ -23,12 +23,23 @@ async def create_session(session: SessionCreate, db: Session = Depends(get_db)):
     img.save(buffered, format="PNG")
     qr_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
     
-    db_session = Session(session_code=session_code, host_id=session.host_id)
+    db_session = Session(
+        session_code=session_code, 
+        host_id=session.host_id,
+        name=session.name,
+        duration=session.duration
+    )
     db.add(db_session)
     db.commit()
     db.refresh(db_session)
     
-    return SessionOut(session_code=session_code, qr_code=qr_base64, host_id=session.host_id)
+    return SessionOut(
+        session_code=session_code, 
+        qr_code=qr_base64, 
+        host_id=session.host_id,
+        name=db_session.name,
+        duration=db_session.duration
+    )
 
 @router.post("/join")
 async def join_session(join: SessionJoin, db: Session = Depends(get_db)):
@@ -42,4 +53,10 @@ async def get_session(session_code: str, db: Session = Depends(get_db)):
     db_session = db.query(Session).filter(Session.session_code == session_code).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
-    return SessionOut(session_code=db_session.session_code, qr_code="", host_id=db_session.host_id)
+    return SessionOut(
+        session_code=db_session.session_code, 
+        qr_code="", 
+        host_id=db_session.host_id,
+        name=db_session.name,
+        duration=db_session.duration
+    )

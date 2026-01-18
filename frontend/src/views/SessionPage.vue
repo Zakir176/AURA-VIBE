@@ -199,7 +199,7 @@ const addSong = async (jamendoSong: JamendoSong) => {
     }
     await queueAPI.addSong(sessionCode, payload)
     toast.success('Song Added!', `"${jamendoSong.name}" is now in the queue.`)
-    // The queue will be updated via websocket event
+    fetchQueue() // Immediately update the queue for the user who added the song
   } catch (error: any) {
     console.error('Failed to add song:', error)
     toast.error('Add Song Failed', error.response?.data?.detail || 'Could not add song.')
