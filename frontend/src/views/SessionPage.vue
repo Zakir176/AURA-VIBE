@@ -306,12 +306,12 @@ const handlePlaybackSync = (event: Event) => {
     } else if (action === 'pause') {
         audioPlayerRef.value.setPlaybackState(false, progress, currentTime, duration);
     } else if (action === 'seek') {
-        // Keep current playing state
-        // @ts-ignore
-        const isPlaying = audioPlayerRef.value.isPlaying; 
-        audioPlayerRef.value.setPlaybackState(isPlaying, progress, currentTime, duration);
+        // Use the playing state provided in the sync message or default to current
+        const isPlayingRemote = data.playing ?? audioPlayerRef.value.isPlaying;
+        audioPlayerRef.value.setPlaybackState(isPlayingRemote, progress, currentTime, duration);
     } else if (action === 'progress') {
-        audioPlayerRef.value.setPlaybackState(true, progress, currentTime, duration);
+        const isPlayingRemote = data.playing ?? true; // Progress usually means it's playing
+        audioPlayerRef.value.setPlaybackState(isPlayingRemote, progress, currentTime, duration);
     }
   } else {
     console.warn('SessionPage: AudioPlayer ref is missing');
