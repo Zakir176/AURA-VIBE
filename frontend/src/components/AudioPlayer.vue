@@ -164,19 +164,36 @@ const setupSound = (track: AudioTrack, autoplay: boolean) => {
 
 
 const play = () => {
+  console.log('AudioPlayer: play requested', { soundExists: !!sound.value, state: sound.value?.state() })
   if (sound.value) {
-    sound.value.play()
+    if (sound.value.state() === 'unloaded') {
+      setupSound(props.currentTrack, true)
+    } else {
+      sound.value.play()
+    }
+  } else if (props.currentTrack) {
+    setupSound(props.currentTrack, true)
   }
 }
 
 const pause = () => {
+  console.log('AudioPlayer: pause requested', { soundExists: !!sound.value, state: sound.value?.state() })
   if (sound.value) {
     sound.value.pause()
   }
 }
 
 const togglePlayPause = () => {
-  if (isPlaying.value) {
+  if (!sound.value) {
+     console.log('AudioPlayer: togglePlayPause triggered with no sound, trying to play');
+     play();
+     return;
+  }
+  
+  const isCurrentlyPlaying = sound.value.playing();
+  console.log('AudioPlayer: togglePlayPause', { isCurrentlyPlaying });
+  
+  if (isCurrentlyPlaying) {
     pause()
   } else {
     play()
@@ -188,6 +205,7 @@ const duration = computed(() => {
 })
 
 const handleSeek = (e: MouseEvent) => {
+  if (!props.isHost) return;
   const target = e.currentTarget as HTMLElement;
   if (target) {
     const percent = e.offsetX / target.offsetWidth;
@@ -212,22 +230,50 @@ const seek = (percent: number) => {
 
 const updateProgress = () => {
   if (sound.value) {
-    const seek = sound.value.seek() || 0;
+    const seek = sound.value.seek() as number || 0;
     const dur = duration.value;
-    progress.value = (seek / dur) * 100;
-    currentTime.value = seek;
-    totalDuration.value = dur;
-    emit('progress', progress.value, dur, seek)
+    
+    // Guard against division by zero/NaN
+    if (dur > 0) {
+      progress.value = (seek / dur) * 100;
+      currentTime.value = seek;
+      totalDuration.value = dur;
+      emit('progress', progress.value, dur, seek)
+    }
   }
 }
 
 // Methods exposed to parent for external control (when not host)
 const setPlaybackState = (playing: boolean, prog: number, current: number, total: number) => {
-    console.log('AudioPlayer: setPlaybackState called', { playing, prog, current, total });
-    isPlaying.value = playing;
+    console.log('AudioPlayer: sync received', { playing, current, localPlaying: isPlaying.value });
+    
+    // Update UI refs
     progress.value = prog;
     currentTime.value = current;
     totalDuration.value = total;
+
+    if (!sound.value) {
+        console.warn('AudioPlayer: Sync received but sound not initialized');
+        return;
+    }
+
+    // Sync position if it drifts too much (> 2 seconds)
+    const localSeek = sound.value.seek() as number;
+    if (Math.abs(localSeek - current) > 2) {
+        console.log('AudioPlayer: Syncing seek position', { localSeek, remoteSeek: current });
+        sound.value.seek(current);
+    }
+
+    if (playing && !sound.value.playing()) {
+        console.log('AudioPlayer: Remote play triggered');
+        sound.value.play();
+    } else if (!playing && sound.value.playing()) {
+        console.log('AudioPlayer: Remote pause triggered');
+        sound.value.pause();
+    }
+    
+    // Ensure local reactive state is in sync (it will also be updated by Howl event handlers)
+    isPlaying.value = playing;
 }
 
 const setDuration = (dur: number) => {

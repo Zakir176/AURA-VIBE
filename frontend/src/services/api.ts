@@ -112,6 +112,11 @@ export const sessionAPI = {
   }
 }
 
+export interface JoinSessionResponse {
+  message: string
+  host_id: string
+}
+
 export const queueAPI = {
   addSong: async (sessionCode: string, songData: AddSongPayload): Promise<Song> => {
     try {
@@ -130,15 +135,15 @@ export const queueAPI = {
     try {
       const response = await api.get<any[]>(`/queue/list/${sessionCode}`, { params: { user_id: userId } })
       return response.data.map(item => ({
-          id: item.song_id,
-          queue_id: item.id,
-          name: item.name,
-          artist_name: item.artist_name,
-          audio: item.audio,
-          image: item.image,
-          added_by: item.added_by,
-          votes: item.votes,
-          user_vote_type: item.user_vote_type
+        id: item.song_id,
+        queue_id: item.id,
+        name: item.name,
+        artist_name: item.artist_name,
+        audio: item.audio,
+        image: item.image,
+        added_by: item.added_by,
+        votes: item.votes,
+        user_vote_type: item.user_vote_type
       }));
     } catch (error) {
       // Handle errors specifically for getting the queue if needed
@@ -162,12 +167,35 @@ export const queueAPI = {
 }
 
 export interface SearchSong {
-  id: string; 
+  id: string;
   name: string;
   artist_name: string;
   audio: string;
   image: string;
 }
+
+export interface AddSongPayload {
+  id: string
+  name: string
+  artist_name: string
+  audio: string
+  image: string
+  added_by: string
+}
+
+export interface Song {
+  id: string
+  queue_id: number
+  name: string
+  artist_name: string
+  audio: string
+  image: string
+  added_by: string
+  votes: number
+  user_vote_type?: boolean | null
+}
+
+export type JamendoSong = SearchSong
 
 export const searchAPI = {
   search: async (query: string, provider: string): Promise<SearchSong[]> => {
