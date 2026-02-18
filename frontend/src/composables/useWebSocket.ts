@@ -47,15 +47,19 @@ export function useWebSocket(sessionCode: string) {
             }));
           } else if (data.type === 'playback_control') {
             // Dispatch custom event for playback controls
-             window.dispatchEvent(new CustomEvent('playback-control', {
+            window.dispatchEvent(new CustomEvent('playback-control', {
               detail: data
             }));
           } else if (data.type === 'playback_sync') {
-             window.dispatchEvent(new CustomEvent('playback-sync', {
+            window.dispatchEvent(new CustomEvent('playback-sync', {
               detail: data
             }));
           } else if (data.type === 'user_joined') {
             toast.info('User Joined', `${data.username || 'A user'} joined the session`);
+          } else if (data.type === 'participant_count_updated') {
+            window.dispatchEvent(new CustomEvent('participant_count_updated', {
+              detail: data
+            }));
           } else if (data.type === 'song_added') {
             toast.success('Song Added', `"${data.song_title}" was added to the queue`);
           }
@@ -79,7 +83,7 @@ export function useWebSocket(sessionCode: string) {
         isConnected.value = false;
         // Don't show toast on every error retry, it's annoying
         if (reconnectAttempts.value === maxReconnectAttempts) {
-             toast.error('Connection Error', 'Failed to connect to live updates');
+          toast.error('Connection Error', 'Failed to connect to live updates');
         }
       };
 
