@@ -1,114 +1,129 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 font-sans text-gray-800 pb-32">
+  <div class="min-h-screen bg-vibe-black font-sans text-gray-200 pb-40 overflow-x-hidden relative">
+    <!-- Background Elements -->
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-vibe-blue/10 rounded-full blur-[120px] animate-pulse-slow"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-vibe-purple/10 rounded-full blur-[150px] animate-pulse-slow animation-delay-2000"></div>
+    </div>
+
     <!-- Header -->
-    <header class="flex items-center justify-between px-4 py-4 bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-20">
-      <router-link to="/" class="p-2 -ml-2 text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+    <header class="flex items-center justify-between px-6 py-5 glass-blur border-b border-white/5 sticky top-0 z-40">
+      <router-link to="/" class="p-2 -ml-2 text-gray-400 hover:text-white transition-all rounded-xl hover:bg-white/5 group border border-transparent hover:border-white/10">
+        <svg class="w-6 h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
       </router-link>
       
       <div class="flex flex-col items-center">
         <div class="flex items-center space-x-2">
-            <h1 class="text-sm font-bold text-gray-900 tracking-tight">ROOM #{{ sessionCode }}</h1>
-            <button @click="copySessionCode" class="text-gray-400 hover:text-blue-500 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v2M8 7h12"></path></svg>
-            </button>
+            <h1 class="text-xs font-black text-gray-400 tracking-[0.2em] uppercase">ROOM CODE</h1>
+            <div class="flex items-center space-x-2 px-3 py-1 bg-white/5 rounded-lg border border-white/10">
+                <span class="text-sm font-black text-white tracking-widest">{{ sessionCode }}</span>
+                <button @click="copySessionCode" class="text-gray-500 hover:text-vibe-indigo transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v2M8 7h12"></path></svg>
+                </button>
+            </div>
         </div>
-        <div class="flex items-center space-x-1.5 mt-0.5">
+        <div class="flex items-center space-x-1.5 mt-1.5">
           <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-vibe-pink opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-vibe-pink"></span>
           </span>
-          <span class="text-[10px] font-bold text-green-600 uppercase tracking-wider">Live</span>
+          <span class="text-[10px] font-black text-vibe-pink uppercase tracking-[0.2em]">Live Session</span>
         </div>
       </div>
       
-      <div class="w-10 flex justify-end">
-          <div class="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded-full">
-            <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-            <span class="text-xs font-bold text-gray-600">{{ participantCount }}</span>
-          </div>
+      <div class="flex items-center space-x-2 bg-white/5 px-3 py-1.5 rounded-xl border border-white/10">
+        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        <span class="text-xs font-black text-white">{{ participantCount }}</span>
       </div>
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-md mx-auto px-4 pt-6">
+    <main class="max-w-xl mx-auto px-6 pt-10 relative z-10">
       
       <!-- Currently Playing Card -->
-      <div class="mb-8">
-        <div class="relative w-full aspect-square rounded-3xl shadow-2xl overflow-hidden mb-6 bg-white ring-1 ring-black/5">
+      <div class="mb-14 group">
+        <div class="relative w-full aspect-square rounded-[2.5rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden mb-8 ring-1 ring-white/10 transition-all duration-700 group-hover:scale-[1.02] bg-vibe-navy">
+            <div class="absolute inset-0 bg-gradient-to-t from-vibe-black via-transparent to-transparent opacity-60 z-10"></div>
             <transition name="fade" mode="out-in">
                 <img v-if="currentSong" :key="currentSong.id" :src="currentSong.image" alt="Album Art" class="w-full h-full object-cover">
-                <div v-else class="w-full h-full bg-gray-50 flex flex-col items-center justify-center text-gray-400 space-y-4">
-                    <svg class="w-16 h-16 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
-                    <span class="font-medium">Queue is empty</span>
+                <div v-else class="w-full h-full flex flex-col items-center justify-center text-gray-600 space-y-6">
+                    <div class="w-20 h-20 rounded-3xl bg-white/5 flex items-center justify-center border border-white/10 animate-pulse">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                    </div>
+                    <span class="font-black text-sm tracking-widest uppercase opacity-40">Queue is empty</span>
                 </div>
             </transition>
             
-            <!-- Overlay Gradient for text readability if needed -->
-            <div v-if="currentSong" class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+            <!-- Ambient Glow based on song -->
+            <div v-if="currentSong" class="absolute -inset-10 bg-vibe-indigo/20 blur-[100px] -z-10 group-hover:opacity-100 transition-opacity duration-1000"></div>
         </div>
         
-        <div class="text-center space-y-1">
-          <h2 class="text-2xl md:text-3xl font-black text-gray-900 tracking-tight leading-tight">{{ currentSong?.name || 'Ready to Vibe?' }}</h2>
-          <p class="text-lg text-gray-500 font-medium">{{ currentSong?.artist_name || 'Add a song to start' }}</p>
+        <div class="text-center space-y-2">
+          <div class="inline-block px-3 py-1 rounded-full bg-vibe-indigo/10 border border-vibe-indigo/20 text-vibe-indigo text-[10px] font-black uppercase tracking-widest mb-2" v-if="currentSong">
+            Now Playing
+          </div>
+          <h2 class="text-4xl md:text-5xl font-black text-white tracking-tighter leading-none">{{ currentSong?.name || 'Ready to Vibe?' }}</h2>
+          <p class="text-lg text-gray-500 font-bold tracking-tight">{{ currentSong?.artist_name || 'Add a song to start the party' }}</p>
         </div>
       </div>
 
       <!-- Up Next Section -->
-      <div class="mb-24">
-        <div class="flex justify-between items-end mb-4 px-1">
-          <h3 class="text-lg font-bold text-gray-900">Up Next</h3>
-          <span class="text-xs font-bold text-gray-500 bg-gray-200/50 px-2 py-1 rounded-md">{{ queue.length }} tracks</span>
+      <div class="mb-32">
+        <div class="flex justify-between items-center mb-8 px-2">
+          <h3 class="text-xl font-black text-white tracking-tight uppercase">Up Next</h3>
+          <span class="text-[10px] font-black text-gray-500 border border-white/10 px-3 py-1 rounded-full bg-white/5">{{ queue.length }} TRACKS</span>
         </div>
         
-        <transition-group name="list" tag="div" class="space-y-3">
+        <transition-group name="list" tag="div" class="space-y-4">
           <div
             v-for="(song, index) in queue"
             :key="song.queue_id"
-            class="group bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-3 transition-all hover:shadow-md hover:border-gray-200 active:scale-[0.98]"
+            class="group glass-card p-4 rounded-[1.5rem] flex items-center space-x-4 transition-all hover:bg-white/10 active:scale-[0.98] border-white/5"
           >
             <div class="relative flex-shrink-0">
-                 <img :src="song.image" alt="Song thumbnail" class="w-14 h-14 rounded-xl object-cover shadow-sm">
-                 <div class="absolute -top-2 -left-2 w-6 h-6 bg-gray-900 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                 <img :src="song.image" alt="Song thumbnail" class="w-16 h-16 rounded-2xl object-cover shadow-2xl ring-1 ring-white/10">
+                 <div class="absolute -top-2 -left-2 w-7 h-7 bg-white text-vibe-black text-xs font-black rounded-lg flex items-center justify-center border-2 border-vibe-black shadow-lg">
                      {{ index + 1 }}
                  </div>
             </div>
             
             <div class="flex-grow min-w-0">
-              <p class="font-bold text-gray-900 truncate text-base">{{ song.name }}</p>
-              <p class="text-sm text-gray-500 truncate">{{ song.artist_name }}</p>
-              <div class="flex items-center mt-1 space-x-1">
-                  <div class="w-4 h-4 rounded-full bg-gradient-to-tr from-blue-400 to-purple-500 flex items-center justify-center text-[8px] text-white font-bold">
-                      {{ song.added_by.slice(0, 1).toUpperCase() }}
+              <p class="font-black text-white truncate text-lg leading-tight">{{ song.name }}</p>
+              <p class="text-sm text-gray-500 truncate font-bold">{{ song.artist_name }}</p>
+              <div class="flex items-center mt-2 space-x-2">
+                  <div class="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[9px] font-black text-gray-400 uppercase tracking-wider">
+                      BY {{ song.added_by.slice(0, 8) }}
                   </div>
-                  <span class="text-xs text-gray-400" :title="song.added_by">added by {{ song.added_by.slice(0, 8) }}...</span>
               </div>
             </div>
             
-            <div class="flex flex-col items-center space-y-1">
-              <button data-testid="upvote-btn" @click="upvote(song.queue_id)" class="p-1 text-gray-400 hover:text-blue-500 transition-colors rounded-full hover:bg-blue-50">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+            <div class="flex flex-col items-center space-y-1 bg-white/5 p-2 rounded-2xl border border-white/5">
+              <button data-testid="upvote-btn" @click="upvote(song.queue_id)" class="p-1 text-gray-500 hover:text-vibe-blue transition-all hover:scale-125">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-8 8h16l-8-8z"></path></svg>
               </button>
-              <span class="font-bold text-xs text-gray-600">{{ song.votes || 0 }}</span>
-              <button data-testid="downvote-btn" @click="downvote(song.queue_id)" class="p-1 text-gray-400 hover:text-red-500 transition-colors rounded-full hover:bg-red-50">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              <span class="font-black text-sm text-white">{{ song.votes || 0 }}</span>
+              <button data-testid="downvote-btn" @click="downvote(song.queue_id)" class="p-1 text-gray-500 hover:text-vibe-pink transition-all hover:scale-125">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 20l8-8H4l8 8z"></path></svg>
               </button>
             </div>
           </div>
         </transition-group>
         
-        <div v-if="queue.length === 0 && !currentSong" class="text-center py-10 opacity-50">
-            <p class="text-gray-400 text-sm">The queue is empty. Be the DJ!</p>
+        <div v-if="queue.length === 0 && !currentSong" class="text-center py-20">
+            <div class="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6 opacity-20">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+            </div>
+            <p class="text-gray-600 font-black text-xs tracking-widest uppercase">The queue is silent. Be the DJ!</p>
         </div>
       </div>
     </main>
 
     <!-- Floating Search Bar -->
     <div 
-      class="fixed left-0 right-0 p-4 transition-all duration-500 z-40"
-      :class="currentSong ? 'bottom-[80px] md:bottom-[88px]' : 'bottom-0'"
+      class="fixed left-6 right-6 p-0 transition-all duration-500 z-50 md:left-auto md:right-10 md:bottom-32 md:w-96"
+      :class="currentSong ? 'bottom-32' : 'bottom-10'"
     >
-      <div class="max-w-md mx-auto shadow-2xl rounded-full">
+      <div class="max-w-md mx-auto shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] rounded-3xl overflow-hidden glass-card border-white/10 focus-within:ring-2 focus-within:ring-vibe-indigo transition-all">
         <SongSearchBar @select-song="onSongSelected" />
       </div>
     </div>
