@@ -1,55 +1,46 @@
 <template>
-  <div class="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-t border-gray-200 shadow-2xl pb-safe">
-    <div class="max-w-4xl mx-auto p-4">
-      <div class="flex items-center gap-4">
+  <div class="fixed bottom-0 left-0 right-0 z-50 glass-blur border-t border-white/5 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
+    <div class="max-w-4xl mx-auto px-6 py-4">
+      <!-- Progress Bar (Above player for better visibility) -->
+      <div class="absolute top-0 left-0 right-0 h-1 bg-white/5 cursor-pointer group" @click="handleSeek" :class="{ 'cursor-default': !props.isHost }">
+          <div class="absolute top-0 left-0 h-full bg-gradient-to-r from-vibe-blue to-vibe-indigo transition-all duration-100 group-hover:from-vibe-purple group-hover:to-vibe-pink" :style="{ width: `${progress}%` }"></div>
+          <!-- Seek Handle -->
+          <div v-if="props.isHost" class="absolute h-3 w-3 bg-white rounded-full -top-1 shadow-[0_0_10px_rgba(255,255,255,0.8)] opacity-0 group-hover:opacity-100 transition-opacity" :style="{ left: `${progress}%`, marginLeft: '-6px' }"></div>
+      </div>
+
+      <div class="flex items-center gap-6 mt-2">
         <!-- Track Info -->
-        <div class="flex items-center space-x-3 flex-1 min-w-0">
-          <div class="relative group">
-            <img :src="props.currentTrack.image" alt="Track thumbnail" class="w-12 h-12 md:w-14 md:h-14 rounded-xl object-cover shadow-sm group-hover:scale-105 transition-transform duration-300"/>
-            <div class="absolute inset-0 rounded-xl ring-1 ring-inset ring-black/10"></div>
+        <div class="flex items-center space-x-4 flex-1 min-w-0">
+          <div class="relative group flex-shrink-0">
+            <img :src="props.currentTrack.image" alt="Track thumbnail" class="w-12 h-12 md:w-16 md:h-16 rounded-2xl object-cover shadow-2xl group-hover:scale-105 transition-transform duration-500 ring-1 ring-white/10"/>
+            <div v-if="isPlaying" class="absolute inset-0 bg-vibe-indigo/20 animate-pulse rounded-2xl"></div>
           </div>
           <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2">
-                <p class="text-sm md:text-base font-bold text-gray-900 truncate">{{ props.currentTrack.name }}</p>
-            </div>
-            <p class="text-xs md:text-sm text-gray-500 truncate font-medium">{{ props.currentTrack.artist_name }}</p>
+            <h4 class="text-sm md:text-xl font-black text-white truncate tracking-tight">{{ props.currentTrack.name }}</h4>
+            <p class="text-xs md:text-sm text-gray-500 truncate font-bold uppercase tracking-wider">{{ props.currentTrack.artist_name }}</p>
           </div>
         </div>
 
         <!-- Player Controls -->
-        <div class="flex items-center space-x-3 md:space-x-6" :class="{ 'opacity-50 pointer-events-none': !props.isHost }">
-          <button @click="emit('previous')" class="p-2 text-gray-400 hover:text-gray-900 transition-colors focus:outline-none rounded-full hover:bg-gray-100 hidden sm:block">
-            <Rewind :size="24" class="fill-current" />
+        <div class="flex items-center space-x-4 md:space-x-8" :class="{ 'opacity-30 pointer-events-none': !props.isHost }">
+          <button @click="emit('previous')" class="p-2 text-gray-400 hover:text-white transition-all transform hover:scale-110 active:scale-90 hidden sm:block">
+            <Rewind :size="28" class="fill-current" />
           </button>
           
-          <button @click="togglePlayPause" class="w-12 h-12 bg-gray-900 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-800 transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900">
-            <Pause v-if="isPlaying" :size="24" fill="currentColor" />
-            <Play v-else :size="24" fill="currentColor" class="ml-1" />
+          <button @click="togglePlayPause" class="w-14 h-14 md:w-16 md:h-16 bg-white text-vibe-black rounded-[1.5rem] flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:shadow-white/50 hover:scale-105 active:scale-95 transition-all focus:outline-none">
+            <Pause v-if="isPlaying" :size="32" fill="currentColor" />
+            <Play v-else :size="32" fill="currentColor" class="ml-1" />
           </button>
           
-          <button @click="emit('next')" class="p-2 text-gray-400 hover:text-gray-900 transition-colors focus:outline-none rounded-full hover:bg-gray-100">
-            <FastForward :size="24" class="fill-current" />
+          <button @click="emit('next')" class="p-2 text-gray-400 hover:text-white transition-all transform hover:scale-110 active:scale-90">
+            <FastForward :size="28" class="fill-current" />
           </button>
         </div>
         
-        <!-- Volume & Progress (Desktop) -->
-        <div class="hidden md:flex flex-1 items-center justify-end max-w-xs pl-4">
-            <div class="w-full space-y-1 group">
-                <div class="flex justify-between text-[10px] font-bold text-gray-400 font-mono tracking-wider">
-                    <span>{{ formatTime(currentTime) }}</span>
-                    <span>{{ formatTime(totalDuration) }}</span>
-                </div>
-                <div class="relative h-1.5 bg-gray-200 rounded-full cursor-pointer overflow-hidden" @click="handleSeek" :class="{ 'cursor-default': !props.isHost }">
-                    <div class="absolute top-0 left-0 h-full bg-gray-900 rounded-full transition-all duration-100 group-hover:bg-blue-600" :style="{ width: `${progress}%` }"></div>
-                </div>
-            </div>
-        </div>
-      </div>
-      
-      <!-- Mobile Progress Bar -->
-      <div class="md:hidden mt-3 -mx-4">
-        <div class="relative h-1 bg-gray-100 cursor-pointer" @click="handleSeek" :class="{ 'cursor-default': !props.isHost }">
-            <div class="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-100" :style="{ width: `${progress}%` }"></div>
+        <!-- Time Info (Desktop) -->
+        <div class="hidden md:flex flex-col items-end min-w-[80px]">
+            <span class="text-xs font-black text-white tabular-nums">{{ formatTime(currentTime) }}</span>
+            <span class="text-[10px] font-black text-gray-600 tabular-nums uppercase">{{ formatTime(totalDuration) }}</span>
         </div>
       </div>
     </div>

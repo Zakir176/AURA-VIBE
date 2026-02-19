@@ -1,28 +1,28 @@
 <template>
-  <div class="min-h-screen bg-gray-50 font-sans text-gray-800">
+  <div class="min-h-screen bg-vibe-black font-sans text-gray-200 selection:bg-vibe-indigo/30">
     <!-- Header -->
-    <header class="flex items-center justify-between px-4 py-6 bg-white border-b border-gray-200 shadow-sm fixed w-full z-10">
-      <router-link to="/" class="text-gray-600 hover:text-gray-800 transition-colors">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-label="Back"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+    <header class="flex items-center justify-between px-6 py-6 glass-blur border-b border-white/5 fixed w-full z-10">
+      <router-link to="/" class="p-2 text-gray-400 hover:text-white transition-all rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 group">
+        <svg class="w-6 h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
       </router-link>
-      <h1 class="text-xl font-semibold">Join Session</h1>
-      <div class="w-6 h-6"></div> <!-- Spacer to balance header -->
+      <h1 class="text-xl font-black text-white tracking-tight uppercase">Join Session</h1>
+      <div class="w-10"></div> <!-- Spacer to balance header -->
     </header>
 
     <!-- Main Content -->
-    <main class="pt-24 pb-4">
-      <div class="max-w-md mx-auto px-4 text-center">
+    <main class="pt-32 pb-4">
+      <div class="max-w-md mx-auto px-6 text-center">
         <!-- Musical Note Icon -->
-        <div class="mb-8 w-24 h-24 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
-          <svg class="w-12 h-12 text-blue-500 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 6l12-3"></path></svg>
+        <div class="mb-10 w-24 h-24 bg-vibe-indigo/10 rounded-[2rem] flex items-center justify-center mx-auto shadow-[0_0_50px_-10px_rgba(79,70,229,0.3)] border border-vibe-indigo/20">
+          <svg class="w-12 h-12 text-vibe-indigo" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 6l12-3"></path></svg>
         </div>
 
-        <h2 class="text-4xl font-extrabold text-gray-800 mb-2">Enter session code</h2>
-        <p class="text-gray-500 mb-8">Enter the 6-digit code provided by the host</p>
+        <h2 class="text-4xl font-black text-white mb-2 tracking-tight uppercase">Enter code</h2>
+        <p class="text-gray-500 mb-10 font-bold text-sm tracking-wide">Enter the 6-character code from the host</p>
 
         <!-- Session Code Input Fields -->
-        <form @submit.prevent="joinSession" class="mb-8">
-          <div class="flex justify-center items-center space-x-2 mb-8">
+        <form @submit.prevent="joinSession" class="mb-10">
+          <div class="flex justify-center items-center space-x-3 mb-10">
             <input
               v-for="n in 3"
               :key="'code-part-1-' + n"
@@ -32,12 +32,11 @@
               @keydown.backspace="handleBackspace(n - 1)"
               type="text"
               maxlength="1"
-              class="w-12 h-14 md:w-14 md:h-16 text-center text-2xl md:text-3xl font-extrabold bg-white border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition text-gray-700"
-              inputmode="numeric"
+              class="w-12 h-16 md:w-16 md:h-20 text-center text-3xl font-black bg-white/5 border border-white/10 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-vibe-indigo focus:border-transparent transition-all text-white uppercase tracking-tighter"
+              inputmode="text"
               pattern="[0-9A-Za-z]"
-              uppercase
             >
-            <span class="text-4xl font-bold text-gray-400">-</span>
+            <span class="text-2xl font-black text-gray-700">-</span>
             <input
               v-for="n in 3"
               :key="'code-part-2-' + n"
@@ -47,96 +46,94 @@
               @keydown.backspace="handleBackspace(n + 2)"
               type="text"
               maxlength="1"
-              class="w-12 h-14 md:w-14 md:h-16 text-center text-2xl md:text-3xl font-extrabold bg-white border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition text-gray-700"
-              inputmode="numeric"
+              class="w-12 h-16 md:w-16 md:h-20 text-center text-3xl font-black bg-white/5 border border-white/10 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-vibe-indigo focus:border-transparent transition-all text-white uppercase tracking-tighter"
+              inputmode="text"
               pattern="[0-9A-Za-z]"
-              uppercase
             >
           </div>
 
-          <div class="flex items-center my-8">
-            <hr class="flex-grow border-gray-200">
-            <span class="px-4 text-gray-400 text-sm font-medium">OR</span>
-            <hr class="flex-grow border-gray-200">
+          <div class="flex items-center my-10">
+            <hr class="flex-grow border-white/5">
+            <span class="px-6 text-gray-600 text-[10px] font-black tracking-[0.3em]">OR</span>
+            <hr class="flex-grow border-white/5">
           </div>
 
           <!-- Scan QR Code Button -->
           <button
             @click="openQrScanner"
             type="button"
-            class="w-full bg-white text-gray-700 font-bold py-4 px-8 rounded-full text-lg flex items-center justify-center space-x-3 border border-gray-300 shadow-sm hover:bg-gray-50 transition-colors"
+            class="w-full bg-white/5 text-white font-black py-5 px-8 rounded-2xl text-lg flex items-center justify-center space-x-3 border border-white/10 hover:bg-white/10 transition-all uppercase tracking-widest group shadow-2xl"
           >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            <svg class="w-6 h-6 transform group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v1m6 1v1m-6-1v1m-6 1v1m0-1H6m12 0h-1m-1 0h1m-1 0h1m-1 0h1M6 12v1m12-1v1m-1-1v1m-1-1v1m-1-1v1M6 18v1m12-1v1m-1-1v1m-1-1v1m-1-1v1m-1-1v1H6m0 0H5m1 0h1m12 0h1m-1 0h-1"></path></svg>
             <span>Scan QR Code</span>
           </button>
         </form>
 
         <!-- QR Scanner Modal/Overlay -->
-        <div v-if="showQrScanner" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div class="relative bg-white rounded-lg p-6 max-w-md w-full">
-            <button @click="closeQrScanner" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        <div v-if="showQrScanner" class="fixed inset-0 glass-blur flex items-center justify-center z-50 p-6">
+          <div class="relative bg-vibe-navy border border-white/10 rounded-[2.5rem] p-8 max-w-md w-full shadow-[0_50px_100px_rgba(0,0,0,0.8)]">
+            <button @click="closeQrScanner" class="absolute top-6 right-6 p-2 text-gray-500 hover:text-white transition-colors rounded-xl hover:bg-white/5">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
-            <h3 class="text-2xl font-bold mb-4 text-center">Scan QR Code</h3>
+            <h3 class="text-2xl font-black mb-6 text-center text-white uppercase tracking-tight">Scan Session QR</h3>
             
-            <div v-if="!hasCameraSupport" class="p-6 bg-yellow-50 rounded-lg border border-yellow-200 text-center">
-              <p class="text-yellow-700 text-sm">
-                Camera access is not supported or blocked. Please enter the code manually.
+            <div v-if="!hasCameraSupport" class="p-6 bg-vibe-pink/10 rounded-2xl border border-vibe-pink/20 text-center">
+              <p class="text-vibe-pink text-sm font-black uppercase tracking-wider">
+                Camera access not supported or blocked.
               </p>
             </div>
 
-            <div v-else-if="cameraLoading" class="p-8 text-center">
-              <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p class="text-gray-600">Loading camera...</p>
+            <div v-else-if="cameraLoading" class="p-10 text-center">
+              <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-vibe-indigo mx-auto mb-6"></div>
+              <p class="text-gray-500 font-bold uppercase text-xs tracking-widest">Waking up camera...</p>
             </div>
 
-            <div v-else-if="cameraError" class="p-6 bg-red-50 rounded-lg border border-red-200 text-center">
-              <p class="text-red-700 text-sm mb-4">{{ cameraError }}</p>
-              <button @click="initCamera" class="btn-secondary text-sm py-2 px-4">
+            <div v-else-if="cameraError" class="p-6 bg-vibe-pink/10 rounded-2xl border border-vibe-pink/20 text-center">
+              <p class="text-vibe-pink text-xs font-black uppercase tracking-wider mb-4">{{ cameraError }}</p>
+              <button @click="initCamera" class="px-6 py-2 bg-white text-vibe-black font-black rounded-xl text-xs uppercase tracking-widest shadow-xl">
                 Try Again
               </button>
             </div>
 
             <div v-else>
-              <div class="relative bg-black rounded-lg overflow-hidden mx-auto max-w-xs mb-4">
+              <div class="relative bg-black rounded-3xl overflow-hidden mx-auto max-w-xs mb-6 shadow-2xl ring-1 ring-white/20">
                 <qrcode-stream 
                   v-if="cameraActive"
                   :camera="cameraState"
                   @decode="onQRCodeDecoded"
                   @init="onCameraInit"
-                  class="w-full h-64"
+                  class="w-full h-80"
                 />
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div class="border-2 border-white border-dashed w-48 h-48 rounded-lg"></div>
+                  <div class="border-4 border-vibe-indigo border-dashed w-56 h-56 rounded-3xl opacity-40 animate-pulse"></div>
                 </div>
               </div>
-              <p class="text-sm text-gray-600 text-center">Point your camera at a session QR code</p>
+              <p class="text-xs font-bold text-gray-500 text-center uppercase tracking-widest">Point camera at the host's screen</p>
             </div>
           </div>
         </div>
 
         <!-- Error Message -->
-        <div v-if="error" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-center">
-          <p class="text-red-700 text-sm">{{ error }}</p>
+        <div v-if="error" class="mt-4 p-4 bg-vibe-pink/10 border border-vibe-pink/20 rounded-2xl text-center">
+          <p class="text-vibe-pink text-xs font-black uppercase tracking-wider leading-relaxed">{{ error }}</p>
         </div>
       </div>
     </main>
 
     <!-- Fixed Bottom Button -->
-    <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-md">
+    <div class="fixed bottom-0 left-0 right-0 p-6 glass-blur border-t border-white/5">
       <div class="max-w-md mx-auto">
         <button 
           @click="joinSession"
           :disabled="!fullSessionCode.length || loading"
-          class="w-full bg-blue-600 text-white font-bold py-4 px-8 rounded-full text-xl flex items-center justify-center space-x-3 hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="w-full bg-vibe-indigo text-white font-black py-5 px-8 rounded-2xl text-lg flex items-center justify-center space-x-3 hover:bg-vibe-purple transition-all duration-500 shadow-[0_0_40px_-5px_rgba(79,70,229,0.4)] hover:shadow-vibe-indigo/60 disabled:opacity-20 disabled:cursor-not-allowed group uppercase tracking-[0.1em]"
         >
           <span v-if="loading">Connecting...</span>
-          <span v-else>Connect to Aura</span>
+          <span v-else class="flex items-center">
+             <span>Connect to Aura</span>
+             <svg class="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </span>
         </button>
-        <router-link to="/help" class="block text-center text-blue-500 text-sm mt-4 hover:underline">
-          <svg class="w-4 h-4 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.126-.92.597-.92 1.247v1m-4-10c0 1.465-1.278 2.575-3.006 2.907-.542.126-.92.597-.92 1.247v1m-4-10c0 1.465-1.278 2.575-3.006 2.907-.542.126-.92.597-.92 1.247v1"></path></svg>
-          Trouble joining?
-        </router-link>
       </div>
     </div>
   </div>

@@ -6,16 +6,44 @@
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;
+    @apply bg-vibe-black text-gray-200;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-800 rounded-full hover:bg-gray-700 transition-colors;
   }
 }
 
 /* Custom component classes */
 @layer components {
   .btn-secondary {
-    @apply bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-xl transition-all duration-200;
   }
   
   .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+    @apply w-full px-4 py-3 bg-vibe-navy border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-vibe-indigo focus:border-transparent text-white transition-all;
+  }
+
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl;
+  }
+
+  .glass-blur {
+    @apply backdrop-blur-md bg-vibe-black/40;
+  }
+  
+  .vibe-glow {
+    box-shadow: 0 0 20px -5px rgba(79, 70, 229, 0.5);
+  }
+  
+  .text-glow {
+    text-shadow: 0 0 10px rgba(79, 70, 229, 0.3);
   }
 }
