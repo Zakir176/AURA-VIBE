@@ -150,7 +150,6 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { queueAPI, sessionAPI } from '@/services/api'
 import type { Song, JamendoSong } from '@/services/api'
-import { getOrCreateUserId } from '@/utils/uuid'
 import { useWebSocket } from '@/composables/useWebSocket'
 import { useSessionStore } from '@/stores/session'
 import { useToast } from '@/composables/useToast'
@@ -161,25 +160,21 @@ const route = useRoute()
 const sessionStore = useSessionStore()
 const toast = useToast()
 const sessionCode = route.params.sessionCode as string
-const userId = ref(getOrCreateUserId())
 
 const queue = ref<Song[]>([])
 const loading = ref(false)
 const addingSong = ref(false)
-const isHost = ref(false)
 const participantCount = ref(0)
 const audioPlayerRef = ref<InstanceType<typeof AudioPlayer> | null>(null)
 
+const isHost = computed(() => sessionStore.isHost)
 const currentSong = computed(() => queue.value[0] || null)
 
 const { isConnected, connect, disconnect, sendMessage } = useWebSocket(sessionCode)
 
 const fetchSessionDetails = async () => {
   try {
-    const session = await sessionAPI.getSession(sessionCode)
-    if (session.host_id === userId.value) {
-      isHost.value = true
-    }
+    await sessionAPI.getSession(sessionCode)
   } catch (error) {
     console.error('Failed to fetch session details:', error)
   }
@@ -188,7 +183,7 @@ const fetchSessionDetails = async () => {
 const fetchQueue = async () => {
   loading.value = true
   try {
-    const songs = await queueAPI.getQueue(sessionCode, userId.value)
+    const songs = await queueAPI.getQueue(sessionCode)
     queue.value = songs
     sessionStore.setQueue(songs)
   } catch (error: any) {
@@ -210,7 +205,6 @@ const addSong = async (jamendoSong: JamendoSong) => {
       artist_name: jamendoSong.artist_name,
       audio: jamendoSong.audio,
       image: jamendoSong.image,
-      added_by: userId.value,
     }
     await queueAPI.addSong(sessionCode, payload)
     toast.success('Song Added!', `"${jamendoSong.name}" is now in the queue.`)
@@ -230,11 +224,11 @@ const onSongSelected = (jamendoSong: JamendoSong) => {
 // --- Player Controls ---
 
 const handleNext = () => {
-  sendMessage({ type: 'playback_control', action: 'next', user_id: userId.value })
+  sendMessage({ type: 'playback_control', action: 'next' })
 }
 
 const handlePrevious = () => {
-  sendMessage({ type: 'playback_control', action: 'previous', user_id: userId.value })
+  sendMessage({ type: 'playback_control', action: 'previous' })
 }
 
 const handleTrackEnded = () => {
@@ -245,7 +239,7 @@ const handleTrackEnded = () => {
 const upvote = async (songId: number) => {
   console.log(`Upvoting song ${songId}`)
   try {
-    await queueAPI.vote(sessionCode, songId, true, userId.value)
+    await queueAPI.vote(sessionCode, songId, true)
     // Queue update will happen via WebSocket 'vote_updated' event
     toast.success('Voted!', 'Your vote has been recorded.')
   } catch (error: any) {
@@ -257,7 +251,7 @@ const upvote = async (songId: number) => {
 const downvote = async (songId: number) => {
   console.log(`Downvoting song ${songId}`)
   try {
-    await queueAPI.vote(sessionCode, songId, false, userId.value)
+    await queueAPI.vote(sessionCode, songId, false)
     // Queue update will happen via WebSocket 'vote_updated' event
     toast.success('Voted!', 'Your vote has been recorded.')
   } catch (error: any) {
