@@ -12,17 +12,15 @@ class Session(Base):
     duration = Column(String, nullable=True)
 
 class SessionCreate(BaseModel):
-    host_id: str
     name: str | None = None
     duration: str | None = None
 
 class SessionOut(BaseModel):
     session_code: str
     qr_code: str
-    host_id: str
     name: str | None = None
     duration: str | None = None
+    token: str
 
 class SessionJoin(BaseModel):
     session_code: str
-    user_id: str
