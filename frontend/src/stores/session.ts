@@ -4,25 +4,25 @@ import type { Song } from '@/services/api'
 
 export const useSessionStore = defineStore('session', () => {
   const currentSessionCode = ref<string | null>(null)
-  const userId = ref<string | null>(null)
-  const hostId = ref<string | null>(null)
+  const token = ref<string | null>(null)
+  const role = ref<string | null>(null)
   const queue = ref<Song[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
-  const isHost = computed(() => userId.value !== null && userId.value === hostId.value)
+  const isHost = computed(() => role.value === 'host')
 
-  const setSession = (sessionCode: string, user: string, currentHostId: string) => {
+  const setSession = (sessionCode: string, sessionToken: string, userRole: string) => {
     currentSessionCode.value = sessionCode
-    userId.value = user
-    hostId.value = currentHostId
+    token.value = sessionToken
+    role.value = userRole
     error.value = null
   }
 
   const clearSession = () => {
     currentSessionCode.value = null
-    userId.value = null
-    hostId.value = null
+    token.value = null
+    role.value = null
     queue.value = []
     error.value = null
   }
@@ -46,8 +46,8 @@ export const useSessionStore = defineStore('session', () => {
   return {
     // State
     currentSessionCode,
-    userId,
-    hostId,
+    token,
+    role,
     queue,
     isLoading,
     error,

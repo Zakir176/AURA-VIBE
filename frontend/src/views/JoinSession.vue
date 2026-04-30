@@ -144,7 +144,6 @@ import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { QrcodeStream } from 'vue-qrcode-reader'
 import { sessionAPI } from '@/services/api'
-import { getOrCreateUserId } from '@/utils/uuid'
 import { useSessionStore } from '@/stores/session'
 import { useToast } from '@/composables/useToast'
 
@@ -320,11 +319,10 @@ const joinSession = async () => {
   error.value = ''
   
   try {
-    const userId = getOrCreateUserId()
-    const response = await sessionAPI.joinSession(fullSessionCode.value, userId)
+    const response = await sessionAPI.joinSession(fullSessionCode.value)
     
     // Store session info
-    sessionStore.setSession(fullSessionCode.value, userId, response.host_id)
+    sessionStore.setSession(fullSessionCode.value, response.token, 'guest')
     
     toast.success('Session Joined!', `You've joined session ${fullSessionCode.value}`)
     
