@@ -2,7 +2,7 @@
 
 Aura Vibe is a real-time collaborative DJ platform where users join music sessions via QR code or session code to add songs to a shared queue, with a host controlling playback. Built as a monorepo with a FastAPI backend and Vue 3 frontend, it is an open-source project licensed under MIT.
 
-[![Status](https://img.shields.io/badge/Backend-Complete-green)](https://github.com/yourusername/auravibe) [![Status](https://img.shields.io/badge/Frontend-In_Progress-yellow)](https://github.com/yourusername/auravibe) [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+[![Status](https://img.shields.io/badge/Backend-Complete-green)](https://github.com/Zakir176/auravibe) [![Status](https://img.shields.io/badge/Frontend-In_Progress-yellow)](https://github.com/Zakir176/auravibe) [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
 ## ?? Overview
 
@@ -57,7 +57,7 @@ AuraVibe/
 └── LICENSE                  # MIT License
 ```
 
-## ?? Quick Start
+## Quick Start
 
 ### Prerequisites
 - **Node.js**: 18+ (for frontend)
@@ -67,7 +67,7 @@ AuraVibe/
 
 ### Clone the Repository
 `bash
-git clone https://github.com/yourusername/auravibe.git
+git clone https://github.com/Zakir176/auravibe.git
 cd auravibe
 `
 
@@ -232,7 +232,7 @@ The frontend is under development. Once complete:
   - CORS: Ensure backend is at http://localhost:8000.
   - WebSocket: Check connection to ws://localhost:8000/ws/<session_code>.
 
-For help, open an issue at https://github.com/yourusername/auravibe/issues.
+For help, open an issue at https://github.com/Zakir176/auravibe/issues.
 
 ##  License
 MIT License - see [LICENSE](LICENSE) for details.
@@ -242,8 +242,8 @@ MIT License - see [LICENSE](LICENSE) for details.
 - Contributors to the Aura Vibe project.
 
 ##  Contact
-- Project Lead: [Your Name](mailto:your.email@example.com)
-- GitHub: [yourusername](https://github.com/yourusername)
+- Project Lead: [Zakir Motala](mailto:zakirhusseinmotala76@gmail.com)
+- GitHub: [Zakir176](https://github.com/Zakir176)
 
 ---
 
@@ -252,6 +252,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 **Made with  and  for music lovers**
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
-[![Vue.js](https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D)] (https://vuejs.org/)
+[![Vue.js](https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D)](https://vuejs.org/)
 
 </div>
