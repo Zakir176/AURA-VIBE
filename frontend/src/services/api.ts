@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useSessionStore } from '@/stores/session'
 
 const API_BASE_URL = '/api'
 
@@ -10,9 +11,18 @@ const api = axios.create({
   timeout: 10000
 })
 
-// Request interceptor for logging
+// Request interceptor for logging and auth
 api.interceptors.request.use(
   (config) => {
+    try {
+      const sessionStore = useSessionStore()
+      if (sessionStore.token) {
+        config.headers.Authorization = `Bearer ${sessionStore.token}`
+      }
+    } catch (e) {
+      // Ignore if pinia is not yet initialized
+    }
+    
     console.log(`🔄 API Call: ${config.method?.toUpperCase()} ${config.url}`)
     return config
   },
@@ -42,16 +52,15 @@ api.interceptors.response.use(
       alert('Backend server is not running. Please start the backend on localhost:8000')
     }
 
-    // Handle other potential error scenarios
     if (error.response) {
-      // If the error contains a response (i.e., the request was made and the server responded)
       if (error.response.status === 404) {
         console.error('API endpoint not found: ', error.response.config?.url)
       } else if (error.response.status === 500) {
         console.error('Internal Server Error on the backend.')
+      } else if (error.response.status === 401 || error.response.status === 403) {
+        console.error('Authentication Error. Please re-join the session.')
       }
     } else {
-      // If the error doesn't contain a response, it's likely a network error
       console.error('Network error or server did not respond', error)
     }
 
@@ -60,7 +69,6 @@ api.interceptors.response.use(
 )
 
 export interface CreateSessionRequest {
-  host_id: string
   name?: string
   duration?: string
 }
@@ -68,14 +76,18 @@ export interface CreateSessionRequest {
 export interface CreateSessionResponse {
   session_code: string
   qr_code: string
-  host_id: string
   name?: string
   duration?: string
+  token: string
 }
 
 export interface JoinSessionRequest {
   session_code: string
-  user_id: string
+}
+
+export interface JoinSessionResponse {
+  message: string
+  token: string
 }
 
 export const sessionAPI = {
@@ -84,20 +96,17 @@ export const sessionAPI = {
       const response = await api.post<CreateSessionResponse>('/session/create', data)
       return response.data
     } catch (error) {
-      // You can also handle errors specifically for this API call here if needed
       throw error
     }
   },
 
-  joinSession: async (sessionCode: string, userId: string): Promise<JoinSessionResponse> => {
+  joinSession: async (sessionCode: string): Promise<JoinSessionResponse> => {
     try {
       const response = await api.post<JoinSessionResponse>('/session/join', {
-        session_code: sessionCode,
-        user_id: userId
+        session_code: sessionCode
       })
       return response.data
     } catch (error) {
-      // You can also handle errors specifically for this API call here if needed
       throw error
     }
   },
@@ -112,11 +121,6 @@ export const sessionAPI = {
   }
 }
 
-export interface JoinSessionResponse {
-  message: string
-  host_id: string
-}
-
 export const queueAPI = {
   addSong: async (sessionCode: string, songData: AddSongPayload): Promise<Song> => {
     try {
@@ -126,14 +130,13 @@ export const queueAPI = {
       })
       return response.data
     } catch (error) {
-      // Handle errors specifically for adding a song if needed
       throw error
     }
   },
 
-  getQueue: async (sessionCode: string, userId: string): Promise<Song[]> => {
+  getQueue: async (sessionCode: string): Promise<Song[]> => {
     try {
-      const response = await api.get<any[]>(`/queue/list/${sessionCode}`, { params: { user_id: userId } })
+      const response = await api.get<any[]>(`/queue/list/${sessionCode}`)
       return response.data.map(item => ({
         id: item.song_id,
         queue_id: item.id,
@@ -146,18 +149,16 @@ export const queueAPI = {
         user_vote_type: item.user_vote_type
       }));
     } catch (error) {
-      // Handle errors specifically for getting the queue if needed
       throw error
     }
   },
 
-  vote: async (sessionCode: string, queueId: number, vote: boolean, userId: string): Promise<any> => {
+  vote: async (sessionCode: string, queueId: number, vote: boolean): Promise<any> => {
     try {
       const response = await api.post('/queue/vote', {
         session_code: sessionCode,
         queue_id: queueId,
-        vote: vote,
-        user_id: userId
+        vote: vote
       })
       return response.data
     } catch (error) {
@@ -180,7 +181,6 @@ export interface AddSongPayload {
   artist_name: string
   audio: string
   image: string
-  added_by: string
 }
 
 export interface Song {
@@ -209,7 +209,5 @@ export const searchAPI = {
     }
   }
 };
-
-
 
 export default api
