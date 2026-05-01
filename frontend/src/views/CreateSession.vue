@@ -73,7 +73,6 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { sessionAPI } from '@/services/api'
-import { generateUUID } from '@/utils/uuid'
 import { useSessionStore } from '@/stores/session'
 import { useToast } from '@/composables/useToast'
 
@@ -98,15 +97,13 @@ const createAndStartSession = async () => {
   error.value = ''
   
   try {
-    const hostId = generateUUID()
     const response = await sessionAPI.createSession({
-      host_id: hostId,
       name: sessionName.value,
       duration: sessionDuration.value,
     })
     
     // Store session info
-    sessionStore.setSession(response.session_code, hostId, response.host_id)
+    sessionStore.setSession(response.session_code, response.token, 'host')
     
     toast.success('Session Created!', `Redirecting to session ${response.session_code}`, {
       duration: 3000,
