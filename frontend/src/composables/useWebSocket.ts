@@ -1,6 +1,7 @@
 // src/composables/useWebSocket.ts
 import { ref, onUnmounted } from 'vue';
 import { useToast } from './useToast';
+import { useSessionStore } from '@/stores/session';
 
 export function useWebSocket(sessionCode: string) {
   const isConnected = ref(false);
@@ -23,7 +24,10 @@ export function useWebSocket(sessionCode: string) {
       // In production, we use the direct backend URL
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const host = import.meta.env.DEV ? window.location.host : 'aura-vibe.onrender.com';
-      const wsUrl = `${protocol}//${host}/ws/${sessionCode}`;
+      
+      const sessionStore = useSessionStore();
+      const token = sessionStore.token || '';
+      const wsUrl = `${protocol}//${host}/ws/${sessionCode}?token=${token}`;
 
       console.log(`🔌 Connecting to WebSocket: ${wsUrl}`);
       ws.value = new WebSocket(wsUrl);
