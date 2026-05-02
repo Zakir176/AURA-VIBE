@@ -1,73 +1,74 @@
-# frontend
+# Aura Vibe Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+The frontend for Aura Vibe is a reactive, real-time web application built with Vue 3. It serves as the interface for both session hosts (who control playback) and participants (who contribute to the queue).
 
-## Recommended IDE Setup
+## 🚀 Tech Stack
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- **Framework**: [Vue 3](https://vuejs.org/) (Composition API)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Build Tool**: [Vite](https://vitejs.dev/)
+- **State Management**: [Pinia](https://pinia.vuejs.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Routing**: [Vue Router](https://router.vuejs.org/)
+- **Icons**: [Heroicons](https://heroicons.com/)
+- **Testing**: [Vitest](https://vitest.dev/) (Unit) & [Playwright](https://playwright.dev/) (E2E)
 
-## Recommended Browser Setup
+## ✨ Key Features
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd) 
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+### Real-Time Synchronization
+Uses a custom `useWebSocket` composable to maintain a persistent connection with the backend. It leverages a browser-native Event Bus (`window.dispatchEvent`) to notify components of queue changes or playback sync without tight coupling.
 
-## Type Support for `.vue` Imports in TS
+### Global State Management
+- **Session Store**: Tracks the current `session_code`, user `role`, and the live `queue`.
+- **Toast Store**: A centralized system for displaying temporary notifications (success, error, info).
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+### Song Discovery
+Integrated search bar that fetches results from multiple providers (Jamendo, YouTube) via the backend API.
 
-## Customize configuration
+### Interactive Queue
+Participants can vote on songs to influence their position in the queue, while the host sees additional playback controls.
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+## 📂 Project Structure
 
-## Project Setup
+```
+src/
+├── components/      # UI components (AudioPlayer, SongSearchBar, etc.)
+├── composables/     # Reusable logic (useWebSocket, useToast)
+├── services/        # API client and communication logic
+├── stores/          # Pinia state stores
+├── views/           # Page-level components (Landing, SessionPage, etc.)
+└── types/           # TypeScript definitions
+```
 
-```sh
+## 🛠️ Development
+
+### Setup
+```bash
 npm install
 ```
 
-### Compile and Hot-Reload for Development
-
-```sh
+### Run Locally
+```bash
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
+### Type-Check
+```bash
+npm run type-check
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
+### Testing
+```bash
+# Unit tests
 npm run test:unit
-```
 
-### Run End-to-End Tests with [Playwright](https://playwright.dev)
-
-```sh
-# Install browsers for the first run
-npx playwright install
-
-# When testing on CI, must build the project first
-npm run build
-
-# Runs the end-to-end tests
+# E2E tests
 npm run test:e2e
-# Runs the tests only on Chromium
-npm run test:e2e -- --project=chromium
-# Runs the tests of a specific file
-npm run test:e2e -- tests/example.spec.ts
-# Runs the tests in debug mode
-npm run test:e2e -- --debug
 ```
 
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+## 🔌 WebSocket Events
+The application listens for several WebSocket events via the `useWebSocket` composable:
+- `queue_updated`: Refreshes the song list.
+- `playback_sync`: Syncs the local player with the host.
+- `participant_count_updated`: Updates the "Live" user indicator.
+- `song_added`: Triggers a toast notification.

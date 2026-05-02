@@ -2,59 +2,39 @@
 
 Aura Vibe is a real-time collaborative DJ platform where users join music sessions via QR code or session code to add songs to a shared queue, with a host controlling playback. Built as a monorepo with a FastAPI backend and Vue 3 frontend, it is an open-source project licensed under MIT.
 
-[![Status](https://img.shields.io/badge/Backend-Complete-green)](https://github.com/Zakir176/auravibe) [![Status](https://img.shields.io/badge/Frontend-In_Progress-yellow)](https://github.com/Zakir176/auravibe) [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+[![Status](https://img.shields.io/badge/Backend-Complete-green)](https://github.com/Zakir176/auravibe) [![Status](https://img.shields.io/badge/Frontend-Active_Development-orange)](https://github.com/Zakir176/auravibe) [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
-## ?? Overview
+## 🏗️ Architecture
+For a deep dive into the system design, data flow, and WebSocket protocol, see the [Architecture Documentation](docs/architecture.md).
 
-In many social or collaborative environments, music selection is often controlled by a single individual, leading to a non-inclusive listening experience. Aura Vibe addresses this by providing a real-time, collaborative DJ platform. It empowers users to collectively shape their auditory environment by joining "sessions" where anyone can queue songs, transforming passive listening into an engaging and democratic group activity.
+## ✨ Features
 
-Designed for social gatherings, collaborative workspaces, and public venues, Aura Vibe aims to create a shared and dynamic musical atmosphere. As an open-source initiative, it also serves as a portfolio piece demonstrating modern web technologies and is not intended for commercial use.
-
-## ? Features
-
-### ?? Core Functionality
+### 🎵 Core Functionality
 - **Instant Session Creation**: Start a session with one click.
 - **QR Code Sharing**: Share sessions via QR codes or unique codes.
-- **YouTube Song Search**: Search for songs on YouTube directly within the app.
-- **Real-time Sync**: Live queue updates via WebSocket.
-- **Collaborative Queue**: Users add songs to a shared queue.
-- **YouTube Integration**: Planned support for YouTube URLs.
+- **Multi-Provider Search**: Search for songs on Jamendo or YouTube directly within the app.
+- **Real-time Sync**: Live queue updates and playback synchronization via WebSocket.
+- **Collaborative Queue**: Users add songs and vote on the next "vibe."
 
-### ?? User Experience
-- **No Registration**: Join sessions instantly.
-- **Mobile-Friendly**: Responsive design (frontend in progress).
-- **Simple Joining**: Scan QR code or enter session code.
+### 📱 User Experience
+- **No Registration**: Join sessions instantly as a participant.
+- **Responsive Design**: Mobile-friendly interface built with Tailwind CSS.
+- **Visual Feedback**: Real-time toast notifications for queue updates.
 
-### ?? Technical Features
-- **WebSocket Updates**: Real-time queue synchronization.
-- **SQLite Database**: Lightweight storage for sessions and queues.
-- **FastAPI Backend**: Modern, high-performance API.
-- **Vue 3 Frontend**: In development with Tailwind CSS.
+### ⚙️ Technical Features
+- **WebSocket Orchestration**: Sophisticated `ConnectionManager` for broadcasting state.
+- **JWT Authentication**: Secure, role-based access for hosts and participants.
+- **Monorepo**: Unified development workflow for backend and frontend.
 
-## ??? Monorepo Structure
+## 📂 Monorepo Structure
 
 ```
 AuraVibe/
 ├── backend/                 # FastAPI backend
-│   ├── app/
-│   │   ├── routes/          # API route handlers
-│   │   ├── models/          # SQLAlchemy models
-│   │   ├── websocket.py     # WebSocket management
-│   │   └── database.py      # Database configuration
-│   ├── requirements.txt     # Python dependencies
-│   ├── .env.example         # Environment variable template
-│   └── README.md            # Backend-specific instructions
 ├── frontend/                # Vue 3 + Tailwind CSS frontend
-│   ├── src/
-│   │   ├── components/      # Vue components
-│   │   ├── services/        # API service layer
-│   │   ├── composables/     # Reusable Vue composables
-│   │   ├── router/          # Vue Router
-│   │   └── main.ts          # App entry
-│   ├── package.json         # Node dependencies
-│   └── README.md            # Frontend-specific instructions
-├── README.md                # This file
-└── LICENSE                  # MIT License
+├── ai-engine/               # AI-powered "vibe" recommendations (Placeholder)
+├── docs/                    # System architecture and documentation
+└── README.md                # This file
 ```
 
 ## Quick Start
@@ -199,24 +179,24 @@ The frontend is under development. Once complete:
 - Ensure mobile responsiveness.
 - Update documentation for changes.
 
-##  Testing
-- **Backend**:
-  `bash
-  # Install pytest
-  pip install pytest
-  # Run tests (once implemented)
-  pytest backend/tests/
-  `
-  Manual testing:
-  `bash
-  curl http://localhost:8000
-  wscat -c ws://localhost:8000/ws/<session_code>
-  `
-- **Frontend** (planned):
-  `bash
-  npm run test:unit  # Unit tests with Vitest (TBD)
-  npm run test:e2e   # E2E tests (TBD)
-  `
+## 🧪 Testing
+
+### Backend
+The backend uses `pytest` for unit and integration testing.
+```bash
+# From the backend directory
+pytest tests/
+```
+
+### Frontend
+The frontend uses `Vitest` for component testing and `Playwright` for E2E testing.
+```bash
+# From the frontend directory
+npm run test:unit  # Unit/Component tests
+npm run test:e2e   # End-to-end tests
+```
+
+Manual verification can be performed using `curl` or `wscat` as described in the **How to Use** section.
 
 ##  Performance
 - **Backend**: FastAPI ensures low-latency API responses (< 100ms).
