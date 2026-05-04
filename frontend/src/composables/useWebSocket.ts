@@ -128,7 +128,7 @@ export function useWebSocket(sessionCode: string) {
     console.log('🔌 WebSocket manually disconnected');
   };
 
-  const sendMessage = (message: any) => {
+  const sendMessage = (message: unknown) => {
     if (ws.value && isConnected.value) {
       try {
         ws.value.send(JSON.stringify(message));
