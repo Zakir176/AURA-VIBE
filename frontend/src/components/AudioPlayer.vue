@@ -267,11 +267,6 @@ const setPlaybackState = (playing: boolean, prog: number, current: number, total
     isPlaying.value = playing;
 }
 
-const setDuration = (dur: number) => {
-    // Only used for display when not host, but duration is computed from sound.
-    // If we want to display duration for guests, we need a separate state or prop.
-    // For now, let's assume guests get progress % directly.
-}
 
 const formatTime = (secs: number) => {
   const minutes = Math.floor(secs / 60) || 0;
