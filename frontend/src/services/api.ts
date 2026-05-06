@@ -19,7 +19,7 @@ api.interceptors.request.use(
       if (sessionStore.token) {
         config.headers.Authorization = `Bearer ${sessionStore.token}`
       }
-    } catch (e) {
+    } catch (_e) {
       // Ignore if pinia is not yet initialized
     }
     
@@ -121,6 +121,18 @@ export const sessionAPI = {
   }
 }
 
+export interface RawQueueItem {
+  song_id: string
+  id: number
+  name: string
+  artist_name: string
+  audio: string
+  image: string
+  added_by: string
+  votes: number
+  user_vote_type?: boolean | null
+}
+
 export const queueAPI = {
   addSong: async (sessionCode: string, songData: AddSongPayload): Promise<Song> => {
     try {
@@ -136,7 +148,7 @@ export const queueAPI = {
 
   getQueue: async (sessionCode: string): Promise<Song[]> => {
     try {
-      const response = await api.get<any[]>(`/queue/list/${sessionCode}`)
+      const response = await api.get<RawQueueItem[]>(`/queue/list/${sessionCode}`)
       return response.data.map(item => ({
         id: item.song_id,
         queue_id: item.id,
@@ -153,7 +165,7 @@ export const queueAPI = {
     }
   },
 
-  vote: async (sessionCode: string, queueId: number, vote: boolean): Promise<any> => {
+  vote: async (sessionCode: string, queueId: number, vote: boolean): Promise<unknown> => {
     try {
       const response = await api.post('/queue/vote', {
         session_code: sessionCode,
