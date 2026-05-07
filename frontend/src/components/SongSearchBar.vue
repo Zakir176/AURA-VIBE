@@ -60,7 +60,7 @@ const searchQuery = ref('');
 const results = ref<SearchSong[]>([]);
 const loading = ref(false);
 const error = ref('');
-const debounceTimer = ref<any>(null);
+const debounceTimer = ref<number | ReturnType<typeof setTimeout> | null>(null);
 
 const emit = defineEmits(['select-song']);
 
@@ -78,7 +78,7 @@ const onSearch = () => {
     try {
       const response = await searchAPI.search(searchQuery.value, 'jamendo');
       results.value = response;
-    } catch (err: any) {
+    } catch {
       error.value = 'Failed to search for songs.';
     } finally {
       loading.value = false;
