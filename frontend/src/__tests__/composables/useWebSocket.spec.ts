@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { useWebSocket } from '@/composables/useWebSocket';
 
@@ -11,7 +11,7 @@ const mockWebSocket = {
   send: vi.fn(),
   close: vi.fn(),
 };
-vi.spyOn(window, 'WebSocket').mockImplementation(() => mockWebSocket as any);
+vi.spyOn(window, 'WebSocket').mockImplementation(() => mockWebSocket as unknown as WebSocket);
 
 describe('useWebSocket', () => {
   beforeEach(() => {
