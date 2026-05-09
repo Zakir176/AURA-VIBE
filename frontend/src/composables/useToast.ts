@@ -9,8 +9,8 @@ export const useToast = () => {
     ...toastStore,
     
     // Convenience methods with common patterns
-    apiError: (error: any, fallbackMessage: string = 'An error occurred') => {
-      const message = error.response?.data?.detail || error.message || fallbackMessage;
+    apiError: (error: unknown, fallbackMessage: string = 'An error occurred') => {
+      const message = (error as Error & { response?: { data?: { detail?: string } } }).response?.data?.detail || (error as Error).message || fallbackMessage;
       return toastStore.error('Error', message);
     },
     
