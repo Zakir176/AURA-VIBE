@@ -71,12 +71,12 @@
       <div class="mb-32">
         <div class="flex justify-between items-center mb-8 px-2">
           <h3 class="text-xl font-black text-white tracking-tight uppercase">Up Next</h3>
-          <span class="text-[10px] font-black text-gray-500 border border-white/10 px-3 py-1 rounded-full bg-white/5">{{ queue.length }} TRACKS</span>
+          <span class="text-[10px] font-black text-gray-500 border border-white/10 px-3 py-1 rounded-full bg-white/5">{{ upNextQueue.length }} TRACKS</span>
         </div>
         
         <transition-group name="list" tag="div" class="space-y-4">
           <div
-            v-for="(song, index) in queue"
+            v-for="(song, index) in upNextQueue"
             :key="song.queue_id"
             class="group glass-card p-4 rounded-[1.5rem] flex items-center space-x-4 transition-all hover:bg-white/10 active:scale-[0.98] border-white/5"
           >
@@ -109,7 +109,7 @@
           </div>
         </transition-group>
         
-        <div v-if="queue.length === 0 && !currentSong" class="text-center py-20">
+        <div v-if="upNextQueue.length === 0 && !currentSong" class="text-center py-20">
             <div class="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6 opacity-20">
                 <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
             </div>
@@ -169,8 +169,9 @@ const audioPlayerRef = ref<InstanceType<typeof AudioPlayer> | null>(null)
 
 const isHost = computed(() => sessionStore.isHost)
 const currentSong = computed(() => queue.value[0] || null)
+const upNextQueue = computed(() => queue.value.slice(1))
 
-const { isConnected, connect, disconnect, sendMessage } = useWebSocket(sessionCode)
+const { connect, disconnect, sendMessage } = useWebSocket(sessionCode)
 
 const fetchSessionDetails = async () => {
   try {
@@ -186,9 +187,9 @@ const fetchQueue = async () => {
     const songs = await queueAPI.getQueue(sessionCode)
     queue.value = songs
     sessionStore.setQueue(songs)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to fetch queue:', error)
-    toast.error('Queue Load Failed', error.response?.data?.detail || 'Failed to load queue.')
+    toast.error('Queue Load Failed', (error as Error & { response?: { data?: { detail?: string } } }).response?.data?.detail || 'Failed to load queue.')
   } finally {
     loading.value = false
   }
@@ -209,9 +210,9 @@ const addSong = async (jamendoSong: JamendoSong) => {
     await queueAPI.addSong(sessionCode, payload)
     toast.success('Song Added!', `"${jamendoSong.name}" is now in the queue.`)
     fetchQueue() // Immediately update the queue for the user who added the song
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to add song:', error)
-    toast.error('Add Song Failed', error.response?.data?.detail || 'Could not add song.')
+    toast.error('Add Song Failed', (error as Error & { response?: { data?: { detail?: string } } }).response?.data?.detail || 'Could not add song.')
   } finally {
     addingSong.value = false
   }
@@ -242,9 +243,9 @@ const upvote = async (songId: number) => {
     await queueAPI.vote(sessionCode, songId, true)
     // Queue update will happen via WebSocket 'vote_updated' event
     toast.success('Voted!', 'Your vote has been recorded.')
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to vote:', error)
-    toast.error('Vote Failed', error.response?.data?.detail || 'Could not record vote.')
+    toast.error('Vote Failed', (error as Error & { response?: { data?: { detail?: string } } }).response?.data?.detail || 'Could not record vote.')
   }
 }
 
@@ -254,9 +255,9 @@ const downvote = async (songId: number) => {
     await queueAPI.vote(sessionCode, songId, false)
     // Queue update will happen via WebSocket 'vote_updated' event
     toast.success('Voted!', 'Your vote has been recorded.')
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to vote:', error)
-    toast.error('Vote Failed', error.response?.data?.detail || 'Could not record vote.')
+    toast.error('Vote Failed', (error as Error & { response?: { data?: { detail?: string } } }).response?.data?.detail || 'Could not record vote.')
   }
 }
 
