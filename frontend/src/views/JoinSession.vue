@@ -163,7 +163,7 @@ const cameraLoading = ref(false)
 const cameraError = ref('')
 const cameraActive = ref(false)
 const cameraState = ref<'auto' | 'on' | 'off'>('off')
-const currentCamera = ref(0)
+
 const availableCameras = ref<MediaDeviceInfo[]>([])
 
 const fullSessionCode = computed(() => {
@@ -243,9 +243,9 @@ const initCamera = async () => {
     cameraState.value = 'auto'
     cameraActive.value = true
     
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Camera init failed:', err)
-    cameraError.value = err.message || 'Failed to access camera'
+    cameraError.value = (err as Error).message || 'Failed to access camera'
     hasCameraSupport.value = false
   } finally {
     cameraLoading.value = false
@@ -253,20 +253,21 @@ const initCamera = async () => {
 }
 
 // Camera initialization handler
-const onCameraInit = async (promise: Promise<any>) => {
+const onCameraInit = async (promise: Promise<unknown>) => {
   try {
     await promise
     cameraError.value = ''
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('QR Scanner init failed:', err)
     
-    if (err.name === 'NotAllowedError') {
+    const errName = (err as Error).name
+    if (errName === 'NotAllowedError') {
       cameraError.value = 'Camera access denied. Please allow camera permissions.'
-    } else if (err.name === 'NotFoundError') {
+    } else if (errName === 'NotFoundError') {
       cameraError.value = 'No camera found on this device.'
-    } else if (err.name === 'NotSupportedError') {
+    } else if (errName === 'NotSupportedError') {
       cameraError.value = 'This browser does not support camera access.'
-    } else if (err.name === 'NotReadableError') {
+    } else if (errName === 'NotReadableError') {
       cameraError.value = 'Camera is already in use by another application.'
     } else {
       cameraError.value = 'Unable to access camera. Please try again.'
@@ -329,9 +330,9 @@ const joinSession = async () => {
     // Redirect to session page
     router.push(`/session/${fullSessionCode.value}`)
     
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Failed to join session:', err)
-    const errorMessage = err.response?.data?.detail || 'Failed to join session. Please check the code and try again.'
+    const errorMessage = (err as Error & { response?: { data?: { detail?: string } } }).response?.data?.detail || 'Failed to join session. Please check the code and try again.'
     error.value = errorMessage
     toast.error('Join Failed', errorMessage)
   } finally {
