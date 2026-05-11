@@ -19,7 +19,7 @@ api.interceptors.request.use(
       if (sessionStore.token) {
         config.headers.Authorization = `Bearer ${sessionStore.token}`
       }
-    } catch (_e) {
+    } catch {
       // Ignore if pinia is not yet initialized
     }
     
@@ -171,6 +171,30 @@ export const queueAPI = {
         session_code: sessionCode,
         queue_id: queueId,
         vote: vote
+      })
+      return response.data
+    } catch (error) {
+      throw error
+    }
+  },
+
+  playSong: async (sessionCode: string, queueId: number): Promise<unknown> => {
+    try {
+      const response = await api.post('/queue/play', {
+        session_code: sessionCode,
+        queue_id: queueId
+      })
+      return response.data
+    } catch (error) {
+      throw error
+    }
+  },
+
+  reorderQueue: async (sessionCode: string, order: number[]): Promise<unknown> => {
+    try {
+      const response = await api.post('/queue/reorder', {
+        session_code: sessionCode,
+        order: order
       })
       return response.data
     } catch (error) {
