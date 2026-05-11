@@ -111,9 +111,9 @@ const createAndStartSession = async () => {
 
     router.push(`/session/${response.session_code}`)
     
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Failed to create session:', err)
-    const errorMessage = err.response?.data?.detail || 'Failed to create session. Please try again.'
+    const errorMessage = (err as Error & { response?: { data?: { detail?: string } } }).response?.data?.detail || 'Failed to create session. Please try again.'
     error.value = errorMessage
     toast.error('Session Creation Failed', errorMessage)
   } finally {
