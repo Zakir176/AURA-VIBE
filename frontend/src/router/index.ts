@@ -28,17 +28,17 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/views/Login.vue')
+    component: () => import('@/views/LoginPage.vue')
   },
   {
     path: '/sessions',
     name: 'Sessions',
-    component: () => import('@/views/Sessions.vue')
+    component: () => import('@/views/SessionsPage.vue')
   },
   {
     path: '/profile',
     name: 'Profile',
-    component: () => import('@/views/Profile.vue')
+    component: () => import('@/views/ProfilePage.vue')
   }
 ]
 
