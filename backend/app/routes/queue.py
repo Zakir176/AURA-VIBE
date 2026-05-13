@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import update
+from sqlalchemy import update, func
 from typing import List
 from app.core.database import get_db
 from app.models.queue import Queue, QueueReorder, AddSongRequest, SongResponse, UserVote
@@ -21,6 +21,8 @@ async def add_to_queue(item: AddSongRequest, db: Session = Depends(get_db), curr
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
     
+    max_pos = db.query(func.max(Queue.position)).filter(Queue.session_code == item.session_code).scalar() or 0
+    
     db_item = Queue(
         session_code=item.session_code,
         song_id=item.song_data.id,
@@ -30,7 +32,8 @@ async def add_to_queue(item: AddSongRequest, db: Session = Depends(get_db), curr
         image=item.song_data.image,
         added_by=current_user.user_id,
         votes=0,
-        played=False
+        played=False,
+        position=max_pos + 1
     )
     db.add(db_item)
     db.commit()
@@ -60,11 +63,21 @@ async def list_queue(session_code: str, db: Session = Depends(get_db), current_u
     if current_user.session_code != session_code:
         raise HTTPException(status_code=403, detail="Not authorized for this session")
 
-    items = db.query(Queue).filter(
-        Queue.session_code == session_code,
-        Queue.played == False,
-        Queue.song_url.isnot(None)
-    ).order_by(Queue.votes.desc(), Queue.id.asc()).all()
+    db_session = db.query(SessionModel).filter(SessionModel.session_code == session_code).first()
+    manual_sort = db_session.manual_sort if db_session else False
+
+    if manual_sort:
+        items = db.query(Queue).filter(
+            Queue.session_code == session_code,
+            Queue.played == False,
+            Queue.song_url.isnot(None)
+        ).order_by(Queue.position.asc(), Queue.id.asc()).all()
+    else:
+        items = db.query(Queue).filter(
+            Queue.session_code == session_code,
+            Queue.played == False,
+            Queue.song_url.isnot(None)
+        ).order_by(Queue.votes.desc(), Queue.id.asc()).all()
     
     response_items = []
     for item in items:
@@ -223,6 +236,7 @@ async def reorder_queue(reorder_data: QueueReorder, db: Session = Depends(get_db
                   .where(Queue.id == queue_id)
                   .values(position=new_pos))
     
+    session.manual_sort = True
     db.commit()
     
     reordered_items = db.query(Queue).filter(
@@ -239,3 +253,39 @@ async def reorder_queue(reorder_data: QueueReorder, db: Session = Depends(get_db
         "message": "Queue reordered successfully",
         "queue": reordered_items
     }
+
+@router.post("/toggle-smart-sort")
+async def toggle_smart_sort(data: dict, db: Session = Depends(get_db), current_user: TokenData = Depends(get_current_user)):
+    if current_user.role != "host":
+        raise HTTPException(status_code=403, detail="Only the host can toggle smart sort")
+        
+    session_code = data.get("session_code")
+    enabled = data.get("enabled", True)
+    
+    if current_user.session_code != session_code:
+        raise HTTPException(status_code=403, detail="Not authorized for this session")
+        
+    db_session = db.query(SessionModel).filter(SessionModel.session_code == session_code).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+        
+    db_session.manual_sort = not enabled
+    db.commit()
+    
+    if db_session.manual_sort:
+        items = db.query(Queue).filter(
+            Queue.session_code == session_code,
+            Queue.played == False
+        ).order_by(Queue.position.asc(), Queue.id.asc()).all()
+    else:
+        items = db.query(Queue).filter(
+            Queue.session_code == session_code,
+            Queue.played == False
+        ).order_by(Queue.votes.desc(), Queue.id.asc()).all()
+        
+    await broadcast_to_session(session_code, {
+        "type": "queue_reordered",
+        "queue": [{"id": item.id, "song_title": item.song_title, "votes": item.votes} for item in items]
+    })
+    
+    return {"message": "Sort mode updated", "manual_sort": db_session.manual_sort}
