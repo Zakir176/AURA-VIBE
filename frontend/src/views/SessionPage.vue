@@ -96,18 +96,8 @@
                   </div>
               </div>
             </div>
-            
-            <div class="flex flex-col items-center space-y-1 bg-white/5 p-2 rounded-2xl border border-white/5">
-              <button data-testid="upvote-btn" @click="upvote(song.queue_id)" class="p-1 text-gray-500 hover:text-vibe-blue transition-all hover:scale-125">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-8 8h16l-8-8z"></path></svg>
-              </button>
-              <span class="font-black text-sm text-white">{{ song.votes || 0 }}</span>
-              <button data-testid="downvote-btn" @click="downvote(song.queue_id)" class="p-1 text-gray-500 hover:text-vibe-pink transition-all hover:scale-125">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 20l8-8H4l8 8z"></path></svg>
-              </button>
-            </div>
-          </div>
-        </transition-group>
+          </template>
+        </draggable>
         
         <div v-if="upNextQueue.length === 0 && !currentSong" class="text-center py-20">
             <div class="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6 opacity-20">
@@ -155,6 +145,7 @@ import { useSessionStore } from '@/stores/session'
 import { useToast } from '@/composables/useToast'
 import SongSearchBar from '@/components/SongSearchBar.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
+import draggable from 'vuedraggable'
 
 const route = useRoute()
 const sessionStore = useSessionStore()
@@ -165,6 +156,7 @@ const queue = ref<Song[]>([])
 const loading = ref(false)
 const addingSong = ref(false)
 const participantCount = ref(0)
+const isManualSort = ref(false)
 const audioPlayerRef = ref<InstanceType<typeof AudioPlayer> | null>(null)
 
 const isHost = computed(() => sessionStore.isHost)
@@ -175,7 +167,8 @@ const { connect, disconnect, sendMessage } = useWebSocket(sessionCode)
 
 const fetchSessionDetails = async () => {
   try {
-    await sessionAPI.getSession(sessionCode)
+    const res = await sessionAPI.getSession(sessionCode)
+    isManualSort.value = (res as any).manual_sort || false
   } catch (error) {
     console.error('Failed to fetch session details:', error)
   }
@@ -235,6 +228,32 @@ const handlePrevious = () => {
 const handleTrackEnded = () => {
   console.log('Track has ended, playing next.')
   handleNext()
+}
+
+const onDragEnd = async () => {
+  if (!isHost.value) return;
+  const order = queue.value.map(s => s.queue_id);
+  try {
+    await queueAPI.reorderQueue(sessionCode, order);
+    isManualSort.value = true;
+    toast.success('Queue Reordered', 'Smart sorting is temporarily paused.');
+  } catch (error) {
+     console.error('Failed to reorder', error);
+     toast.error('Reorder Failed');
+     fetchQueue(); // Revert on failure
+  }
+}
+
+const enableSmartSort = async () => {
+   try {
+      const res = await queueAPI.toggleSmartSort(sessionCode, true)
+      isManualSort.value = (res as any).manual_sort;
+      toast.success('Smart Sort Enabled', 'Queue is now ordered by votes.');
+      fetchQueue();
+   } catch(e) {
+      console.error('Failed to toggle smart sort', e);
+      toast.error('Action Failed');
+   }
 }
 
 const upvote = async (songId: number) => {
