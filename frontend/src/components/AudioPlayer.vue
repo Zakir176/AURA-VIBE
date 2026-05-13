@@ -10,12 +10,15 @@
 
       <div class="flex items-center gap-6 mt-2">
         <!-- Track Info -->
-        <div class="flex items-center space-x-4 flex-1 min-w-0">
-          <div class="relative group flex-shrink-0">
-            <img :src="props.currentTrack.image" alt="Track thumbnail" class="w-12 h-12 md:w-16 md:h-16 rounded-2xl object-cover shadow-2xl group-hover:scale-105 transition-transform duration-500 ring-1 ring-white/10"/>
-            <div v-if="isPlaying" class="absolute inset-0 bg-vibe-indigo/20 animate-pulse rounded-2xl"></div>
+        <div class="flex items-center space-x-4 flex-1 min-w-0 relative">
+          <div class="relative group flex-shrink-0 flex items-center justify-center w-12 h-12 md:w-16 md:h-16">
+            <!-- Visualizer Canvas -->
+            <canvas ref="visualizerCanvas" class="absolute pointer-events-none z-[-1] transition-opacity duration-500" :class="{ 'opacity-100': isPlaying, 'opacity-0': !isPlaying }" width="160" height="160" style="width: 160px; height: 160px; left: 50%; top: 50%; transform: translate(-50%, -50%);"></canvas>
+            
+            <img :src="props.currentTrack.image" alt="Track thumbnail" class="w-full h-full rounded-2xl object-cover shadow-2xl group-hover:scale-105 transition-transform duration-500 ring-1 ring-white/10 relative z-10"/>
+            <div v-if="isPlaying" class="absolute inset-0 bg-vibe-indigo/20 animate-pulse rounded-2xl relative z-20 pointer-events-none"></div>
           </div>
-          <div class="min-w-0 flex-1">
+          <div class="min-w-0 flex-1 ml-2">
             <h4 class="text-sm md:text-xl font-black text-white truncate tracking-tight">{{ props.currentTrack.name }}</h4>
             <p class="text-xs md:text-sm text-gray-500 truncate font-bold uppercase tracking-wider">{{ props.currentTrack.artist_name }}</p>
           </div>
@@ -84,6 +87,10 @@ const currentTime = ref(0)
 const totalDuration = ref(0)
 const toast = useToast()
 
+const visualizerCanvas = ref<HTMLCanvasElement | null>(null)
+let analyser: AnalyserNode | null = null
+let animationFrameId: number | null = null
+
 let progressInterval: number | null = null;
 
 const clear = () => {
@@ -94,10 +101,81 @@ const clear = () => {
     sound.value.unload()
     sound.value = null
   }
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId)
+    animationFrameId = null
+  }
   isPlaying.value = false
   progress.value = 0
   currentTime.value = 0
   totalDuration.value = 0
+}
+
+const initVisualizer = () => {
+  if (!Howler.ctx) return;
+  if (!analyser) {
+    analyser = Howler.ctx.createAnalyser();
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.8;
+    Howler.masterGain.connect(analyser);
+  }
+}
+
+const drawVisualizer = () => {
+  if (!visualizerCanvas.value || !analyser) return;
+  const canvas = visualizerCanvas.value;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const width = canvas.width;
+  const height = canvas.height;
+  const centerX = width / 2;
+  const centerY = height / 2;
+  
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+  
+  const draw = () => {
+    animationFrameId = requestAnimationFrame(draw);
+    
+    if (!isPlaying.value) return; // Let opacity fade handle the visual transition
+    
+    analyser!.getByteFrequencyData(dataArray);
+    
+    let bassSum = 0;
+    for(let i = 0; i < 8; i++) {
+        bassSum += dataArray[i];
+    }
+    const bassAvg = bassSum / 8; 
+    const normalizedBass = bassAvg / 255; // 0 to 1
+    
+    ctx.clearRect(0, 0, width, height);
+    
+    // The image is 64x64 on desktop (radius 32). Let's base radius at 42 to leave a gap.
+    const baseRadius = 42;
+    const pulse = normalizedBass * 18; // Max expansion
+    
+    // Main reactive ring
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, baseRadius + pulse, 0, 2 * Math.PI);
+    ctx.lineWidth = 3 + (normalizedBass * 3);
+    
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, `rgba(99, 102, 241, ${0.4 + normalizedBass * 0.4})`); // vibe-indigo
+    gradient.addColorStop(1, `rgba(236, 72, 153, ${0.4 + normalizedBass * 0.4})`); // vibe-pink
+    
+    ctx.strokeStyle = gradient;
+    ctx.stroke();
+    
+    // Outer subtle glow ring
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, baseRadius + pulse + 8, 0, 2 * Math.PI);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = `rgba(168, 85, 247, ${0.1 + normalizedBass * 0.2})`; // vibe-purple
+    ctx.stroke();
+  };
+  
+  draw();
 }
 
 const setupSound = (track: AudioTrack, autoplay: boolean) => {
@@ -121,6 +199,11 @@ const setupSound = (track: AudioTrack, autoplay: boolean) => {
       const seek = sound.value?.seek() || 0;
       const dur = duration.value;
       emit('play', progress.value, dur, seek)
+      
+      initVisualizer()
+      if (!animationFrameId) {
+         drawVisualizer()
+      }
     },
     onpause: () => {
       isPlaying.value = false
