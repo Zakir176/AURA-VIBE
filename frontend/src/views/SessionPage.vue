@@ -71,66 +71,35 @@
       <div class="mb-32">
         <div class="flex justify-between items-center mb-8 px-2">
           <h3 class="text-xl font-black text-white tracking-tight uppercase">Up Next</h3>
-          <div class="flex items-center space-x-3">
-             <button v-if="isHost && isManualSort" @click="enableSmartSort" class="text-[10px] font-black text-vibe-indigo border border-vibe-indigo/30 hover:bg-vibe-indigo/20 px-3 py-1 rounded-full bg-vibe-indigo/10 transition-colors uppercase tracking-widest flex items-center gap-1">
-                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                 Enable Smart Sort
-             </button>
-             <span class="text-[10px] font-black text-gray-500 border border-white/10 px-3 py-1 rounded-full bg-white/5">{{ upNextQueueLocal.length }} TRACKS</span>
-          </div>
+          <span class="text-[10px] font-black text-gray-500 border border-white/10 px-3 py-1 rounded-full bg-white/5">{{ upNextQueue.length }} TRACKS</span>
         </div>
         
-        <draggable
-          v-model="upNextQueueLocal"
-          item-key="queue_id"
-          class="space-y-4"
-          :disabled="!isHost"
-          @end="onDragEnd"
-          ghost-class="opacity-40"
-          drag-class="scale-105"
-        >
-          <template #item="{ element: song, index }">
-            <div
-              class="group glass-card p-4 rounded-[1.5rem] flex items-center space-x-4 transition-all hover:bg-white/10 active:scale-[0.98] border-white/5"
-              :class="{ 'cursor-grab active:cursor-grabbing': isHost }"
-            >
-              <div class="relative flex-shrink-0">
-                   <img :src="song.image" alt="Song thumbnail" class="w-16 h-16 rounded-2xl object-cover shadow-2xl ring-1 ring-white/10">
-                   <div class="absolute -top-2 -left-2 w-7 h-7 bg-white text-vibe-black text-xs font-black rounded-lg flex items-center justify-center border-2 border-vibe-black shadow-lg">
-                       {{ index + 1 }}
-                   </div>
-              </div>
-              
-              <div class="flex-grow min-w-0">
-                <p class="font-black text-white truncate text-lg leading-tight">{{ song.name }}</p>
-                <p class="text-sm text-gray-500 truncate font-bold">{{ song.artist_name }}</p>
-                <div class="flex items-center mt-2 space-x-2">
-                    <div class="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[9px] font-black text-gray-400 uppercase tracking-wider">
-                        BY {{ song.added_by.slice(0, 8) }}
-                    </div>
-                </div>
-              </div>
-              
-              <!-- Vote controls -->
-              <div class="flex flex-col items-center space-y-1 bg-white/5 p-2 rounded-2xl border border-white/5 z-10" @mousedown.stop @touchstart.stop>
-                <button data-testid="upvote-btn" @click="upvote(song.queue_id)" class="p-1 text-gray-500 hover:text-vibe-blue transition-all hover:scale-125">
-                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-8 8h16l-8-8z"></path></svg>
-                </button>
-                <span class="font-black text-sm text-white">{{ song.votes || 0 }}</span>
-                <button data-testid="downvote-btn" @click="downvote(song.queue_id)" class="p-1 text-gray-500 hover:text-vibe-pink transition-all hover:scale-125">
-                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 20l8-8H4l8 8z"></path></svg>
-                </button>
-              </div>
-
-              <!-- Drag Handle (Host Only) -->
-              <div v-if="isHost" class="flex-shrink-0 text-gray-600 group-hover:text-white transition-colors opacity-0 group-hover:opacity-100">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path></svg>
+        <transition-group name="list" tag="div" class="space-y-4">
+          <div
+            v-for="(song, index) in upNextQueue"
+            :key="song.queue_id"
+            class="group glass-card p-4 rounded-[1.5rem] flex items-center space-x-4 transition-all hover:bg-white/10 active:scale-[0.98] border-white/5"
+          >
+            <div class="relative flex-shrink-0">
+                 <img :src="song.image" alt="Song thumbnail" class="w-16 h-16 rounded-2xl object-cover shadow-2xl ring-1 ring-white/10">
+                 <div class="absolute -top-2 -left-2 w-7 h-7 bg-white text-vibe-black text-xs font-black rounded-lg flex items-center justify-center border-2 border-vibe-black shadow-lg">
+                     {{ index + 1 }}
+                 </div>
+            </div>
+            
+            <div class="flex-grow min-w-0">
+              <p class="font-black text-white truncate text-lg leading-tight">{{ song.name }}</p>
+              <p class="text-sm text-gray-500 truncate font-bold">{{ song.artist_name }}</p>
+              <div class="flex items-center mt-2 space-x-2">
+                  <div class="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[9px] font-black text-gray-400 uppercase tracking-wider">
+                      BY {{ song.added_by.slice(0, 8) }}
+                  </div>
               </div>
             </div>
           </template>
         </draggable>
         
-        <div v-if="upNextQueueLocal.length === 0 && !currentSong" class="text-center py-20">
+        <div v-if="upNextQueue.length === 0 && !currentSong" class="text-center py-20">
             <div class="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6 opacity-20">
                 <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
             </div>
@@ -192,12 +161,7 @@ const audioPlayerRef = ref<InstanceType<typeof AudioPlayer> | null>(null)
 
 const isHost = computed(() => sessionStore.isHost)
 const currentSong = computed(() => queue.value[0] || null)
-const upNextQueueLocal = computed({
-  get: () => queue.value.slice(1),
-  set: (newValue) => {
-    queue.value = [queue.value[0], ...newValue];
-  }
-})
+const upNextQueue = computed(() => queue.value.slice(1))
 
 const { connect, disconnect, sendMessage } = useWebSocket(sessionCode)
 
