@@ -200,6 +200,18 @@ export const queueAPI = {
     } catch (error) {
       throw error
     }
+  },
+
+  toggleSmartSort: async (sessionCode: string, enabled: boolean): Promise<unknown> => {
+    try {
+      const response = await api.post('/queue/toggle-smart-sort', {
+        session_code: sessionCode,
+        enabled: enabled
+      })
+      return response.data
+    } catch (error) {
+      throw error
+    }
   }
 }
 
