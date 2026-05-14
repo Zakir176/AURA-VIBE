@@ -25,7 +25,8 @@
     "uuid": "^13.0.0",
     "vue": "^3.5.22",
     "vue-qrcode-reader": "^5.7.3",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@pinia/testing": "^1.0.3",
