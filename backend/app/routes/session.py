@@ -43,7 +43,8 @@ async def create_session(session: SessionCreate, db: DbSession = Depends(get_db)
         qr_code=qr_base64, 
         name=db_session.name,
         duration=db_session.duration,
-        token=token
+        token=token,
+        manual_sort=db_session.manual_sort
     )
 
 @router.post("/join")
@@ -65,5 +66,6 @@ async def get_session(session_code: str, db: DbSession = Depends(get_db)):
     return {
         "session_code": db_session.session_code, 
         "name": db_session.name,
-        "duration": db_session.duration
+        "duration": db_session.duration,
+        "manual_sort": db_session.manual_sort
     }
