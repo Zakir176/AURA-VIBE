@@ -73,7 +73,7 @@ describe('useWebSocket', () => {
     mockWebSocket.onmessage({ data: JSON.stringify(message) } as MessageEvent);
 
     expect(dispatchEventSpy).toHaveBeenCalled();
-    const event = dispatchEventSpy.mock.calls[0][0] as CustomEvent;
+    const event = dispatchEventSpy.mock.calls[0]![0] as CustomEvent;
     expect(event.type).toBe('queue-updated');
     expect(event.detail).toEqual(message);
   });
