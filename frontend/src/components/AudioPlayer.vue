@@ -16,7 +16,7 @@
             <canvas ref="visualizerCanvas" class="absolute pointer-events-none z-[-1] transition-opacity duration-500" :class="{ 'opacity-100': isPlaying, 'opacity-0': !isPlaying }" width="160" height="160" style="width: 160px; height: 160px; left: 50%; top: 50%; transform: translate(-50%, -50%);"></canvas>
             
             <img :src="props.currentTrack.image" alt="Track thumbnail" class="w-full h-full rounded-2xl object-cover shadow-2xl group-hover:scale-105 transition-transform duration-500 ring-1 ring-white/10 relative z-10"/>
-            <div v-if="isPlaying" class="absolute inset-0 bg-vibe-indigo/20 animate-pulse rounded-2xl relative z-20 pointer-events-none"></div>
+            <div v-if="isPlaying" class="absolute inset-0 bg-vibe-indigo/20 animate-pulse rounded-2xl z-20 pointer-events-none"></div>
           </div>
           <div class="min-w-0 flex-1 ml-2">
             <h4 class="text-sm md:text-xl font-black text-white truncate tracking-tight">{{ props.currentTrack.name }}</h4>
@@ -144,7 +144,7 @@ const drawVisualizer = () => {
     
     let bassSum = 0;
     for(let i = 0; i < 8; i++) {
-        bassSum += dataArray[i];
+        bassSum += dataArray[i]!;
     }
     const bassAvg = bassSum / 8; 
     const normalizedBass = bassAvg / 255; // 0 to 1
