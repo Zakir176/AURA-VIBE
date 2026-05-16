@@ -96,8 +96,8 @@
                   </div>
               </div>
             </div>
-          </template>
-        </draggable>
+          </div>
+        </transition-group>
         
         <div v-if="upNextQueue.length === 0 && !currentSong" class="text-center py-20">
             <div class="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6 opacity-20">
