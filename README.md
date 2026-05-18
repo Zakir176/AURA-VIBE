@@ -7,7 +7,17 @@ Aura Vibe is a real-time collaborative DJ platform where users join music sessio
 ## 🏗️ Architecture
 For a deep dive into the system design, data flow, and WebSocket protocol, see the [Architecture Documentation](docs/architecture.md).
 
-## ✨ Features
+## 📸 Screenshots
+
+| Landing Page | Create Session |
+| :---: | :---: |
+| ![Landing Page](docs/Stitch/Collected_PNGs/landing_page.png) | ![Create Session](docs/Stitch/Collected_PNGs/create_session.png) |
+
+| Join Session | Active Session |
+| :---: | :---: |
+| ![Join Session](docs/Stitch/Collected_PNGs/join_session.png) | ![Active Session](docs/Stitch/Collected_PNGs/active_session.png) |
+
+## 🚀 Features
 
 ### 🎵 Core Functionality
 - **Instant Session Creation**: Start a session with one click.
@@ -30,14 +40,14 @@ For a deep dive into the system design, data flow, and WebSocket protocol, see t
 
 ```
 AuraVibe/
-├── backend/                 # FastAPI backend
-├── frontend/                # Vue 3 + Tailwind CSS frontend
-├── ai-engine/               # AI-powered "vibe" recommendations (Placeholder)
-├── docs/                    # System architecture and documentation
-└── README.md                # This file
+├── backend/                 # FastAPI backend (Python 3.8+)
+├── frontend/                # Vue 3 + Tailwind CSS frontend (Node.js 18+)
+├── ai-engine/               # AI-powered "vibe" recommendations (Research Phase)
+├── docs/                    # System architecture and visual assets
+└── README.md                # Project entry point
 ```
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
 - **Node.js**: 18+ (for frontend)
@@ -46,84 +56,70 @@ AuraVibe/
 - **Modern Browser**: Chrome, Firefox, Safari, or Edge
 
 ### Clone the Repository
-`bash
+```bash
 git clone https://github.com/Zakir176/auravibe.git
 cd auravibe
-`
+```
 
 ### Backend Setup
 1. Navigate to the backend directory:
-   `bash
+   ```bash
    cd backend
-   `
+   ```
 2. Create a `.env` file from the example:
-   `bash
+   ```bash
    cp .env.example .env
-   `
-3. Add your YouTube API key to the `.env` file.
+   ```
+3. Add your YouTube and Jamendo API keys to the `.env` file.
 4. Create and activate a virtual environment:
-   `bash
+   ```bash
    python -m venv venv
    .\venv\Scripts\Activate.ps1  # On Windows
    # or: source venv/bin/activate  # On macOS/Linux
-   `
+   ```
 5. Install dependencies:
-   `bash
+   ```bash
    pip install -r requirements.txt
-   `
+   ```
 6. Run the server:
-   `bash
+   ```bash
    uvicorn app.main:app --reload
-   `
+   ```
    Backend available at http://localhost:8000.
 
 ### Frontend Setup
-The frontend is under development. Once complete:
 1. Navigate to the frontend directory:
-   `bash
+   ```bash
    cd frontend
-   `
+   ```
 2. Install dependencies:
-   `bash
+   ```bash
    npm install
-   `
+   ```
 3. Run the development server:
-   `bash
+   ```bash
    npm run dev
-   `
+   ```
    Frontend will be available at http://localhost:5173.
 
-## ?? How to Use
+## 📖 How to Use
 
 ### Creating a Session
-1. Send a POST request to create a session:
-   `bash
-   curl -X POST http://localhost:8000/session/create -H "Content-Type: application/json" -d "{\"host_id\": \"host123\"}"
-   `
-2. Receive a session_code (e.g., da7fc799) and qr_code (base64 PNG).
+1. Open the frontend and click **"Create Session"**.
+2. A unique session code and QR code will be generated.
 3. Share the code or QR code with friends.
 
 ### Joining a Session
-1. Join with a session code:
-   `bash
-   curl -X POST http://localhost:8000/session/join -H "Content-Type: application/json" -d "{\"session_code\": \"da7fc799\", \"user_id\": \"user123\"}"
-   `
+1. Participants can scan the QR code or enter the session code manually on the **"Join Session"** page.
+2. Once joined, they can search for songs and add them to the queue.
 
 ### Managing the Queue
-1. Add a song:
-   `bash
-   curl -X POST http://localhost:8000/queue/add -H "Content-Type: application/json" -d "{\"session_code\": \"da7fc799\", \"song_title\": \"Test Song\", \"song_url\": \"https://youtube.com/watch?v=test\", \"added_by\": \"user123\"}"
-   `
-2. List the queue:
-   `bash
-   curl http://localhost:8000/queue/list/da7fc799
-   `
-3. Connect to WebSocket for real-time updates:
-   `bash
-   wscat -c ws://localhost:8000/ws/da7fc799
-   `
+1. **Search**: Use the search bar to find songs from Jamendo or YouTube.
+2. **Add**: Click the "Add" button to put a song in the collaborative queue.
+3. **Vote**: Upvote songs to move them higher in the queue (coming soon).
+4. **Play**: The host controls the playback using the integrated audio player.
 
-## ??? Development
+## 🛠️ Development
 
 ### Backend Tech Stack
 - **FastAPI**: 0.115.0
@@ -166,16 +162,16 @@ The frontend is under development. Once complete:
   - `YOUTUBE_API_KEY`: Your Google Cloud YouTube Data API v3 key.
 - **Frontend**: The `VITE_API_BASE_URL` is hardcoded to `http://localhost:8000` in `frontend/src/services/api.ts`. This can be changed to a `.env` file if needed.
 
-##  Contributing
+## 🤝 Contributing
 1. Fork the repository.
-2. Create a feature branch: git checkout -b feature/amazing-feature.
-3. Commit changes: git commit -m 'Add amazing feature'.
-4. Push: git push origin feature/amazing-feature.
+2. Create a feature branch: `git checkout -b feature/amazing-feature`.
+3. Commit changes: `git commit -m 'Add amazing feature'`.
+4. Push: `git push origin feature/amazing-feature`.
 5. Open a Pull Request.
 
 ### Guidelines
 - Follow PEP 8 for Python (backend).
-- Use Vue 3 Composition API (frontend, once implemented).
+- Use Vue 3 Composition API (frontend).
 - Ensure mobile responsiveness.
 - Update documentation for changes.
 
@@ -196,32 +192,30 @@ npm run test:unit  # Unit/Component tests
 npm run test:e2e   # End-to-end tests
 ```
 
-Manual verification can be performed using `curl` or `wscat` as described in the **How to Use** section.
-
-##  Performance
+## ⚡ Performance
 - **Backend**: FastAPI ensures low-latency API responses (< 100ms).
 - **WebSocket**: Latency < 100ms for queue updates.
-- **Frontend**: Target First Contentful Paint < 1.5s (once implemented).
+- **Frontend**: Target First Contentful Paint < 1.5s.
 
-##  Troubleshooting
+## 🔍 Troubleshooting
 - **Backend Errors**:
-  - Pylance issues: Select ackend\venv\Scripts\python.exe in VS Code.
-  - WebSocket failure: Verify websockets==13.1 (pip show websockets).
-  - Database issues: Delete ackend/aura_vibe.db and restart server.
-- **Frontend Errors** (once implemented):
-  - CORS: Ensure backend is at http://localhost:8000.
-  - WebSocket: Check connection to ws://localhost:8000/ws/<session_code>.
+  - Pylance issues: Select `backend\venv\Scripts\python.exe` in VS Code.
+  - WebSocket failure: Verify `websockets==13.1` (`pip show websockets`).
+  - Database issues: Delete `backend/aura_vibe.db` and restart server.
+- **Frontend Errors**:
+  - CORS: Ensure backend is running at `http://localhost:8000`.
+  - WebSocket: Check connection to `ws://localhost:8000/ws/<session_code>`.
 
 For help, open an issue at https://github.com/Zakir176/auravibe/issues.
 
-##  License
+## 📄 License
 MIT License - see [LICENSE](LICENSE) for details.
 
-##  Acknowledgments
+## 🙏 Acknowledgments
 - FastAPI and Vue.js communities.
 - Contributors to the Aura Vibe project.
 
-##  Contact
+## 📧 Contact
 - Project Lead: [Zakir Motala](mailto:zakirhusseinmotala76@gmail.com)
 - GitHub: [Zakir176](https://github.com/Zakir176)
 
@@ -229,7 +223,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 <div align='center'>
 
-**Made with  and  for music lovers**
+**Made with ❤️ and 🎵 for music lovers**
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Vue.js](https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D)](https://vuejs.org/)
