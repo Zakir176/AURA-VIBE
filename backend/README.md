@@ -84,14 +84,12 @@
   `
 
 ## Monorepo Structure
-- **Backend**: D:\code\GitHub\Personal\AURA-VIBE\backend (this directory).
-- **Frontend**: D:\code\GitHub\Personal\AURA-VIBE\frontend (Vue 3, in progress).
-- Root README.md (optional): Create to describe the monorepo.
+- **Backend**: `backend/` (this directory).
+- **Frontend**: `frontend/` (Vue 3, Active Development).
+- **Architecture**: Detailed system design can be found in [docs/architecture.md](../docs/architecture.md).
 
 ## Next Steps
-- **Frontend Integration**: Develop Vue 3 + Vuetify frontend in ../frontend to connect to http://localhost:8000 and ws://localhost:8000/ws/<session_code>.
-- **YouTube API**: Add search endpoint (GET /youtube/search).
-- **Queue Voting**: Add voting endpoint (POST /queue/vote).
+- **AI Engine**: Integrate `ai-engine/` for smart recommendations.
 - **Deployment**: Backend to Render/Heroku, frontend to Vercel.
 
 ## Troubleshooting
