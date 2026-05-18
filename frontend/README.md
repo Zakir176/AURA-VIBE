@@ -13,6 +13,9 @@ The frontend for Aura Vibe is a reactive, real-time web application built with V
 - **Icons**: [Heroicons](https://heroicons.com/)
 - **Testing**: [Vitest](https://vitest.dev/) (Unit) & [Playwright](https://playwright.dev/) (E2E)
 
+## 🏗️ Architecture
+For a deep dive into the system design, data flow, and WebSocket protocol, see the [Architecture Documentation](../docs/architecture.md).
+
 ## ✨ Key Features
 
 ### Real-Time Synchronization
