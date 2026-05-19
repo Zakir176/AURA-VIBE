@@ -24,7 +24,7 @@ describe('useWebSocket', () => {
   it('should connect to the correct WebSocket URL', () => {
     const { connect } = useWebSocket('test-session');
     connect();
-    expect(window.WebSocket).toHaveBeenCalledWith('ws://localhost:3000/ws/test-session');
+    expect(window.WebSocket).toHaveBeenCalledWith('ws://localhost:3000/ws/test-session?token=');
   });
 
   it('should set isConnected to true on open', () => {
