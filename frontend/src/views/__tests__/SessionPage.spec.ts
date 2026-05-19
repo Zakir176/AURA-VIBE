@@ -31,7 +31,7 @@ vi.mock('@/services/api', () => ({
     vote: vi.fn().mockResolvedValue({}),
   },
   sessionAPI: {
-    getSession: vi.fn().mockResolvedValue({ host_id: 'host-user-id' }),
+    getSession: vi.fn().mockResolvedValue({ session_code: 'TEST123', host_id: 'host-user-id' }),
   },
 }));
 
@@ -64,10 +64,11 @@ describe('SessionPage.vue', () => {
       },
     });
 
-    // Wait for component to update after mounting and async operations
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.text()).toContain('ROOM #TEST123');
+    // Template renders "ROOM CODE" label and "TEST123" value separately — no "#"
+    expect(wrapper.text()).toContain('ROOM CODE');
+    expect(wrapper.text()).toContain('TEST123');
   });
 
   it('displays the queue of songs', async () => {
@@ -99,12 +100,16 @@ describe('SessionPage.vue', () => {
     expect(wrapper.text()).toContain('Artist 1');
     expect(wrapper.text()).toContain('Song 2');
     expect(wrapper.text()).toContain('Artist 2');
-    expect(wrapper.findAll('.group').length).toBe(2);
+    // Use data-testid to count only queue items (not the "currently playing" card)
+    expect(wrapper.findAll('[data-testid="queue-item"]').length).toBe(2);
   });
 
   it('upvotes a song', async () => {
+    // With 1 song in queue: index 0 is currentSong (Now Playing), upNextQueue is empty.
+    // Add 2 songs so the second appears in upNextQueue and has the vote buttons.
     const mockQueue = [
-      { id: '1', queue_id: 101, name: 'Song 1', artist_name: 'Artist 1', votes: 5, image: '', audio: '', added_by: 'user1', played: false, position: 1 },
+      { id: '1', queue_id: 100, name: 'Current Song', artist_name: 'Artist 0', votes: 0, image: '', audio: '', added_by: 'user0', played: false, position: 0 },
+      { id: '2', queue_id: 101, name: 'Song 1', artist_name: 'Artist 1', votes: 5, image: '', audio: '', added_by: 'user1', played: false, position: 1 },
     ];
     vi.mocked(queueAPI.getQueue).mockResolvedValue(mockQueue);
     const voteSpy = vi.spyOn(queueAPI, 'vote');
@@ -121,12 +126,13 @@ describe('SessionPage.vue', () => {
     
     await wrapper.find('[data-testid="upvote-btn"]').trigger('click');
     
-    expect(voteSpy).toHaveBeenCalledWith('TEST123', 101, true, expect.any(String));
+    expect(voteSpy).toHaveBeenCalledWith('TEST123', 101, true);
   });
 
   it('downvotes a song', async () => {
     const mockQueue = [
-      { id: '1', queue_id: 101, name: 'Song 1', artist_name: 'Artist 1', votes: 5, image: '', audio: '', added_by: 'user1', played: false, position: 1 },
+      { id: '1', queue_id: 100, name: 'Current Song', artist_name: 'Artist 0', votes: 0, image: '', audio: '', added_by: 'user0', played: false, position: 0 },
+      { id: '2', queue_id: 101, name: 'Song 1', artist_name: 'Artist 1', votes: 5, image: '', audio: '', added_by: 'user1', played: false, position: 1 },
     ];
     vi.mocked(queueAPI.getQueue).mockResolvedValue(mockQueue);
     const voteSpy = vi.spyOn(queueAPI, 'vote');
@@ -143,6 +149,6 @@ describe('SessionPage.vue', () => {
 
     await wrapper.find('[data-testid="downvote-btn"]').trigger('click');
 
-    expect(voteSpy).toHaveBeenCalledWith('TEST123', 101, false, expect.any(String));
+    expect(voteSpy).toHaveBeenCalledWith('TEST123', 101, false);
   });
 });
