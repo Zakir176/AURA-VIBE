@@ -41,7 +41,7 @@
     <main class="max-w-xl mx-auto px-6 pt-10 relative z-10">
       
       <!-- Currently Playing Card -->
-      <div class="mb-14 group">
+      <div class="mb-14 group" data-testid="queue-item">
         <div class="relative w-full aspect-square rounded-[2.5rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden mb-8 ring-1 ring-white/10 transition-all duration-700 group-hover:scale-[1.02] bg-vibe-navy">
             <div class="absolute inset-0 bg-gradient-to-t from-vibe-black via-transparent to-transparent opacity-60 z-10"></div>
             <transition name="fade" mode="out-in">
@@ -53,8 +53,6 @@
                     <span class="font-black text-sm tracking-widest uppercase opacity-40">Queue is empty</span>
                 </div>
             </transition>
-            
-            <!-- Ambient Glow based on song -->
             <div v-if="currentSong" class="absolute -inset-10 bg-vibe-indigo/20 blur-[100px] -z-10 group-hover:opacity-100 transition-opacity duration-1000"></div>
         </div>
         
@@ -71,30 +69,96 @@
       <div class="mb-32">
         <div class="flex justify-between items-center mb-8 px-2">
           <h3 class="text-xl font-black text-white tracking-tight uppercase">Up Next</h3>
-          <span class="text-[10px] font-black text-gray-500 border border-white/10 px-3 py-1 rounded-full bg-white/5">{{ upNextQueue.length }} TRACKS</span>
+          <div class="flex items-center gap-3">
+            <!-- Host: re-enable smart sort when manually sorted -->
+            <button
+              v-if="isHost && isManualSort"
+              @click="enableSmartSort"
+              class="text-[10px] font-black text-vibe-indigo border border-vibe-indigo/30 px-3 py-1 rounded-full bg-vibe-indigo/5 hover:bg-vibe-indigo/20 transition-all uppercase tracking-wider"
+            >
+              ⚡ Smart Sort
+            </button>
+            <span class="text-[10px] font-black text-gray-500 border border-white/10 px-3 py-1 rounded-full bg-white/5">{{ upNextQueue.length }} TRACKS</span>
+          </div>
         </div>
         
-        <transition-group name="list" tag="div" class="space-y-4">
+        <!-- Host: draggable queue -->
+        <draggable
+          v-if="isHost"
+          v-model="draggableQueue"
+          tag="div"
+          class="space-y-4"
+          @end="onDragEnd"
+          item-key="queue_id"
+          handle=".drag-handle"
+        >
+          <template #item="{ element: song, index }">
+            <div
+              data-testid="queue-item"
+              class="glass-card p-4 rounded-[1.5rem] flex items-center space-x-4 transition-all hover:bg-white/10 active:scale-[0.98] border-white/5"
+            >
+              <div class="drag-handle cursor-grab active:cursor-grabbing text-gray-600 hover:text-gray-400 transition-colors flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg>
+              </div>
+              <div class="relative flex-shrink-0">
+                <img :src="song.image" alt="Song thumbnail" class="w-16 h-16 rounded-2xl object-cover shadow-2xl ring-1 ring-white/10">
+                <div class="absolute -top-2 -left-2 w-7 h-7 bg-white text-vibe-black text-xs font-black rounded-lg flex items-center justify-center border-2 border-vibe-black shadow-lg">
+                  {{ index + 1 }}
+                </div>
+              </div>
+              <div class="flex-grow min-w-0">
+                <p class="font-black text-white truncate text-lg leading-tight">{{ song.name }}</p>
+                <p class="text-sm text-gray-500 truncate font-bold">{{ song.artist_name }}</p>
+                <div class="flex items-center mt-2 space-x-2">
+                  <div class="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[9px] font-black text-gray-400 uppercase tracking-wider">
+                    BY {{ song.added_by.slice(0, 8) }}
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col items-center gap-1 flex-shrink-0">
+                <button data-testid="upvote-btn" @click="upvote(song.queue_id)" class="p-1.5 rounded-lg hover:bg-vibe-indigo/20 text-gray-500 hover:text-vibe-indigo transition-all">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
+                </button>
+                <span class="text-xs font-black text-white">{{ song.votes }}</span>
+                <button data-testid="downvote-btn" @click="downvote(song.queue_id)" class="p-1.5 rounded-lg hover:bg-vibe-pink/20 text-gray-500 hover:text-vibe-pink transition-all">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+              </div>
+            </div>
+          </template>
+        </draggable>
+
+        <!-- Guest: animated list -->
+        <transition-group v-else name="list" tag="div" class="space-y-4">
           <div
             v-for="(song, index) in upNextQueue"
             :key="song.queue_id"
+            data-testid="queue-item"
             class="group glass-card p-4 rounded-[1.5rem] flex items-center space-x-4 transition-all hover:bg-white/10 active:scale-[0.98] border-white/5"
           >
             <div class="relative flex-shrink-0">
-                 <img :src="song.image" alt="Song thumbnail" class="w-16 h-16 rounded-2xl object-cover shadow-2xl ring-1 ring-white/10">
-                 <div class="absolute -top-2 -left-2 w-7 h-7 bg-white text-vibe-black text-xs font-black rounded-lg flex items-center justify-center border-2 border-vibe-black shadow-lg">
-                     {{ index + 1 }}
-                 </div>
+              <img :src="song.image" alt="Song thumbnail" class="w-16 h-16 rounded-2xl object-cover shadow-2xl ring-1 ring-white/10">
+              <div class="absolute -top-2 -left-2 w-7 h-7 bg-white text-vibe-black text-xs font-black rounded-lg flex items-center justify-center border-2 border-vibe-black shadow-lg">
+                {{ index + 1 }}
+              </div>
             </div>
-            
             <div class="flex-grow min-w-0">
               <p class="font-black text-white truncate text-lg leading-tight">{{ song.name }}</p>
               <p class="text-sm text-gray-500 truncate font-bold">{{ song.artist_name }}</p>
               <div class="flex items-center mt-2 space-x-2">
-                  <div class="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[9px] font-black text-gray-400 uppercase tracking-wider">
-                      BY {{ song.added_by.slice(0, 8) }}
-                  </div>
+                <div class="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[9px] font-black text-gray-400 uppercase tracking-wider">
+                  BY {{ song.added_by.slice(0, 8) }}
+                </div>
               </div>
+            </div>
+            <div class="flex flex-col items-center gap-1 flex-shrink-0">
+              <button data-testid="upvote-btn" @click="upvote(song.queue_id)" class="p-1.5 rounded-lg hover:bg-vibe-indigo/20 text-gray-500 hover:text-vibe-indigo transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
+              </button>
+              <span class="text-xs font-black text-white">{{ song.votes }}</span>
+              <button data-testid="downvote-btn" @click="downvote(song.queue_id)" class="p-1.5 rounded-lg hover:bg-vibe-pink/20 text-gray-500 hover:text-vibe-pink transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+              </button>
             </div>
           </div>
         </transition-group>
@@ -147,6 +211,15 @@ import SongSearchBar from '@/components/SongSearchBar.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
 import draggable from 'vuedraggable'
 
+// Local response shape interfaces to avoid `any`
+interface SessionDetailResponse {
+  manual_sort?: boolean
+}
+
+interface ToggleSortResponse {
+  manual_sort: boolean
+}
+
 const route = useRoute()
 const sessionStore = useSessionStore()
 const toast = useToast()
@@ -163,12 +236,20 @@ const isHost = computed(() => sessionStore.isHost)
 const currentSong = computed(() => queue.value[0] || null)
 const upNextQueue = computed(() => queue.value.slice(1))
 
+// Writable computed for vuedraggable — only used by host
+const draggableQueue = computed({
+  get: () => upNextQueue.value,
+  set: (newVal: Song[]) => {
+    queue.value = currentSong.value ? [currentSong.value, ...newVal] : [...newVal]
+  }
+})
+
 const { connect, disconnect, sendMessage } = useWebSocket(sessionCode)
 
 const fetchSessionDetails = async () => {
   try {
     const res = await sessionAPI.getSession(sessionCode)
-    isManualSort.value = (res as any).manual_sort || false
+    isManualSort.value = (res as unknown as SessionDetailResponse).manual_sort || false
   } catch (error) {
     console.error('Failed to fetch session details:', error)
   }
@@ -202,7 +283,7 @@ const addSong = async (jamendoSong: JamendoSong) => {
     }
     await queueAPI.addSong(sessionCode, payload)
     toast.success('Song Added!', `"${jamendoSong.name}" is now in the queue.`)
-    fetchQueue() // Immediately update the queue for the user who added the song
+    fetchQueue()
   } catch (error: unknown) {
     console.error('Failed to add song:', error)
     toast.error('Add Song Failed', (error as Error & { response?: { data?: { detail?: string } } }).response?.data?.detail || 'Could not add song.')
@@ -231,36 +312,34 @@ const handleTrackEnded = () => {
 }
 
 const onDragEnd = async () => {
-  if (!isHost.value) return;
-  const order = queue.value.map(s => s.queue_id);
+  if (!isHost.value) return
+  const order = queue.value.map(s => s.queue_id)
   try {
-    await queueAPI.reorderQueue(sessionCode, order);
-    isManualSort.value = true;
-    toast.success('Queue Reordered', 'Smart sorting is temporarily paused.');
+    await queueAPI.reorderQueue(sessionCode, order)
+    isManualSort.value = true
+    toast.success('Queue Reordered', 'Smart sorting is temporarily paused.')
   } catch (error) {
-     console.error('Failed to reorder', error);
-     toast.error('Reorder Failed');
-     fetchQueue(); // Revert on failure
+    console.error('Failed to reorder', error)
+    toast.error('Reorder Failed')
+    fetchQueue()
   }
 }
 
 const enableSmartSort = async () => {
-   try {
-      const res = await queueAPI.toggleSmartSort(sessionCode, true)
-      isManualSort.value = (res as any).manual_sort;
-      toast.success('Smart Sort Enabled', 'Queue is now ordered by votes.');
-      fetchQueue();
-   } catch(e) {
-      console.error('Failed to toggle smart sort', e);
-      toast.error('Action Failed');
-   }
+  try {
+    const res = await queueAPI.toggleSmartSort(sessionCode, true)
+    isManualSort.value = (res as ToggleSortResponse).manual_sort
+    toast.success('Smart Sort Enabled', 'Queue is now ordered by votes.')
+    fetchQueue()
+  } catch (e) {
+    console.error('Failed to toggle smart sort', e)
+    toast.error('Action Failed')
+  }
 }
 
 const upvote = async (songId: number) => {
-  console.log(`Upvoting song ${songId}`)
   try {
     await queueAPI.vote(sessionCode, songId, true)
-    // Queue update will happen via WebSocket 'vote_updated' event
     toast.success('Voted!', 'Your vote has been recorded.')
   } catch (error: unknown) {
     console.error('Failed to vote:', error)
@@ -269,10 +348,8 @@ const upvote = async (songId: number) => {
 }
 
 const downvote = async (songId: number) => {
-  console.log(`Downvoting song ${songId}`)
   try {
     await queueAPI.vote(sessionCode, songId, false)
-    // Queue update will happen via WebSocket 'vote_updated' event
     toast.success('Voted!', 'Your vote has been recorded.')
   } catch (error: unknown) {
     console.error('Failed to vote:', error)
@@ -304,46 +381,38 @@ const onProgress = (percent: number, duration: number, currentTime: number) => {
 }
 
 const handlePlaybackControl = (event: Event) => {
-  const customEvent = event as CustomEvent;
-  const data = customEvent.detail;
-  
+  const customEvent = event as CustomEvent
+  const data = customEvent.detail
   if (data.type === 'error') {
-    toast.error('Playback Control Error', data.message);
+    toast.error('Playback Control Error', data.message)
   } else if (data.type === 'info') {
-    toast.info('Info', data.message);
+    toast.info('Info', data.message)
   }
 }
 
 const handleParticipantCountUpdated = (event: Event) => {
-  const customEvent = event as CustomEvent;
-  participantCount.value = customEvent.detail.count;
+  const customEvent = event as CustomEvent
+  participantCount.value = customEvent.detail.count
 }
 
 const handlePlaybackSync = (event: Event) => {
-  const customEvent = event as CustomEvent;
-  const data = customEvent.detail;
-  console.log('SessionPage: Received playback-sync event', data, 'isHost:', isHost.value);
-  
-  if (isHost.value) return; 
-  
+  const customEvent = event as CustomEvent
+  const data = customEvent.detail
+  if (isHost.value) return
+
   if (audioPlayerRef.value) {
-    const { action, progress, duration, currentTime } = data;
-    console.log('SessionPage: Updating AudioPlayer state', action);
-    
+    const { action, progress, duration, currentTime } = data
     if (action === 'play') {
-        audioPlayerRef.value.setPlaybackState(true, progress, currentTime, duration);
+        audioPlayerRef.value.setPlaybackState(true, progress, currentTime, duration)
     } else if (action === 'pause') {
-        audioPlayerRef.value.setPlaybackState(false, progress, currentTime, duration);
+        audioPlayerRef.value.setPlaybackState(false, progress, currentTime, duration)
     } else if (action === 'seek') {
-        // Use the playing state provided in the sync message or default to current
-        const isPlayingRemote = data.playing ?? audioPlayerRef.value.isPlaying;
-        audioPlayerRef.value.setPlaybackState(isPlayingRemote, progress, currentTime, duration);
+        const isPlayingRemote = data.playing ?? audioPlayerRef.value.isPlaying
+        audioPlayerRef.value.setPlaybackState(isPlayingRemote, progress, currentTime, duration)
     } else if (action === 'progress') {
-        const isPlayingRemote = data.playing ?? true; // Progress usually means it's playing
-        audioPlayerRef.value.setPlaybackState(isPlayingRemote, progress, currentTime, duration);
+        const isPlayingRemote = data.playing ?? true
+        audioPlayerRef.value.setPlaybackState(isPlayingRemote, progress, currentTime, duration)
     }
-  } else {
-    console.warn('SessionPage: AudioPlayer ref is missing');
   }
 }
 
@@ -367,7 +436,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* List Transitions */
 .list-move,
 .list-enter-active,
 .list-leave-active {
