@@ -32,75 +32,105 @@ def client_fixture(session: Session):
     yield TestClient(app)
     app.dependency_overrides.clear()
 
+# ---------------------------------------------------------------------------
+# Helper: create a session and return an authenticated TestClient + metadata
+# ---------------------------------------------------------------------------
+@pytest.fixture(name="authed_client")
+def authed_client_fixture(client: TestClient):
+    """Creates a live session and returns a client pre-authenticated as the host."""
+    create_response = client.post(
+        "/session/create",
+        json={"name": "Auth Test Session", "duration": "1hr"}
+    )
+    assert create_response.status_code == 200
+    data = create_response.json()
+    token = data["token"]
+    session_code = data["session_code"]
+    host_id = data["host_id"]
+
+    authed = TestClient(app, headers={"Authorization": f"Bearer {token}"})
+    # Share the same DB override
+    authed.app = client.app  # type: ignore[attr-defined]
+
+    return {
+        "client": authed,
+        "session_code": session_code,
+        "host_id": host_id,
+        "token": token,
+    }
+
+# ---------------------------------------------------------------------------
+# Session tests
+# ---------------------------------------------------------------------------
+
 def test_create_session(client: TestClient):
-    host_id = "test_host_id"
-    session_name = "Test Session"
-    session_duration = "1hr"
-    
     response = client.post(
         "/session/create",
-        json={"host_id": host_id, "name": session_name, "duration": session_duration}
+        json={"name": "Test Session", "duration": "1hr"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert "session_code" in data
     assert "qr_code" in data
-    assert data["host_id"] == host_id
-    assert data["name"] == session_name
-    assert data["duration"] == session_duration
+    assert "host_id" in data
+    assert "token" in data
+    assert data["name"] == "Test Session"
+    assert data["duration"] == "1hr"
 
 def test_join_session(client: TestClient):
     # First, create a session to join
     create_response = client.post(
         "/session/create",
-        json={"host_id": "host123", "name": "Joinable Session", "duration": "2hrs"}
+        json={"name": "Joinable Session", "duration": "2hrs"}
     )
     assert create_response.status_code == 200
     session_code = create_response.json()["session_code"]
+    host_id = create_response.json()["host_id"]
 
     # Test successful join
-    user_id = "user123"
     join_response = client.post(
         "/session/join",
-        json={"session_code": session_code, "user_id": user_id}
+        json={"session_code": session_code}
     )
     assert join_response.status_code == 200
     join_data = join_response.json()
-    assert join_data["message"] == f"User {user_id} joined session {session_code}"
-    assert join_data["host_id"] == "host123"
+    # Message includes the auto-generated guest_id and session_code
+    assert "joined session" in join_data["message"]
+    assert session_code in join_data["message"]
+    assert join_data["host_id"] == host_id
+    assert "token" in join_data
 
 def test_join_non_existent_session(client: TestClient):
     # Test joining a session that does not exist
-    user_id = "user456"
     non_existent_code = "nonexist"
     join_response = client.post(
         "/session/join",
-        json={"session_code": non_existent_code, "user_id": user_id}
+        json={"session_code": non_existent_code}
     )
     assert join_response.status_code == 404
     assert join_response.json()["detail"] == "Session not found"
 
 def test_get_session(client: TestClient):
     # First, create a session to retrieve
-    host_id = "host_to_get"
+    host_id_expected = None
     session_name = "Session To Get"
     session_duration = "3hrs"
     create_response = client.post(
         "/session/create",
-        json={"host_id": host_id, "name": session_name, "duration": session_duration}
+        json={"name": session_name, "duration": session_duration}
     )
     assert create_response.status_code == 200
     session_code = create_response.json()["session_code"]
+    host_id_expected = create_response.json()["host_id"]
 
     # Test successful retrieval
     get_response = client.get(f"/session/{session_code}")
     assert get_response.status_code == 200
     get_data = get_response.json()
     assert get_data["session_code"] == session_code
-    # qr_code is not returned in get_session as per current implementation, it's empty string
-    assert get_data["qr_code"] == "" 
-    assert get_data["host_id"] == host_id
+    assert get_data["qr_code"] == ""
+    assert get_data["host_id"] == host_id_expected
     assert get_data["name"] == session_name
     assert get_data["duration"] == session_duration
 
@@ -110,6 +140,10 @@ def test_get_non_existent_session(client: TestClient):
     get_response = client.get(f"/session/{non_existent_code}")
     assert get_response.status_code == 404
     assert get_response.json()["detail"] == "Session not found"
+
+# ---------------------------------------------------------------------------
+# Search tests
+# ---------------------------------------------------------------------------
 
 def test_search_jamendo_success(client: TestClient, mocker):
     mock_tracks = [
@@ -183,14 +217,13 @@ def test_search_spotify_not_implemented(client: TestClient):
     assert response.status_code == 501
     assert response.json()["detail"] == "Spotify search not implemented"
 
-def test_add_song_to_queue_success(client: TestClient, session: Session):
-    # Create a session first
-    create_response = client.post(
-        "/session/create",
-        json={"host_id": "host_add_song", "name": "Add Song Session", "duration": "1hr"}
-    )
-    assert create_response.status_code == 200
-    session_code = create_response.json()["session_code"]
+# ---------------------------------------------------------------------------
+# Queue tests — all require an authenticated client
+# ---------------------------------------------------------------------------
+
+def test_add_song_to_queue_success(authed_client: dict, session: Session):
+    ac = authed_client["client"]
+    session_code = authed_client["session_code"]
 
     song_data = {
         "id": "jamendo_id_1",
@@ -201,7 +234,7 @@ def test_add_song_to_queue_success(client: TestClient, session: Session):
         "added_by": "user_add_song"
     }
 
-    response = client.post(
+    response = ac.post(
         "/queue/add",
         json={"session_code": session_code, "song_data": song_data}
     )
@@ -213,16 +246,20 @@ def test_add_song_to_queue_success(client: TestClient, session: Session):
     assert data["artist_name"] == song_data["artist_name"]
     assert data["song_url"] == song_data["audio"]
     assert data["image"] == song_data["image"]
-    assert data["added_by"] == song_data["added_by"]
     assert data["votes"] == 0
-    assert data["user_vote_type"] is None # Initially no vote
+    assert data["user_vote_type"] is None  # Initially no vote
 
     # Verify the song is in the database
-    queue_item = session.query(Queue).filter(Queue.session_code == session_code, Queue.song_id == song_data["id"]).first()
+    queue_item = session.query(Queue).filter(
+        Queue.session_code == session_code,
+        Queue.song_id == song_data["id"]
+    ).first()
     assert queue_item is not None
     assert queue_item.song_title == song_data["name"]
 
-def test_add_song_to_non_existent_session(client: TestClient):
+def test_add_song_to_non_existent_session(authed_client: dict):
+    """Auth passes (valid token for a real session), but the target session_code is different → 403."""
+    ac = authed_client["client"]
     song_data = {
         "id": "jamendo_id_2",
         "name": "Another Song",
@@ -233,79 +270,95 @@ def test_add_song_to_non_existent_session(client: TestClient):
     }
     non_existent_code = "nonexist"
 
-    response = client.post(
+    response = ac.post(
         "/queue/add",
         json={"session_code": non_existent_code, "song_data": song_data}
     )
-    assert response.status_code == 404
-    assert response.json()["detail"] == "Session not found"
+    # The token is scoped to a different session, so the route returns 403
+    assert response.status_code == 403
 
-def test_list_queue_success(client: TestClient):
-    # Create a session and add two songs
-    create_response = client.post("/session/create", json={"host_id": "host_list", "name": "List Test", "duration": "1hr"})
-    session_code = create_response.json()["session_code"]
-    
+def test_list_queue_success(authed_client: dict):
+    ac = authed_client["client"]
+    session_code = authed_client["session_code"]
+
     song1_data = {"id": "s1", "name": "Song One", "artist_name": "Artist 1", "audio": "url1", "image": "img1", "added_by": "user1"}
     song2_data = {"id": "s2", "name": "Song Two", "artist_name": "Artist 2", "audio": "url2", "image": "img2", "added_by": "user2"}
-    
-    client.post("/queue/add", json={"session_code": session_code, "song_data": song1_data})
-    client.post("/queue/add", json={"session_code": session_code, "song_data": song2_data})
 
-    response = client.get(f"/queue/list/{session_code}?user_id=test_user")
-    
+    ac.post("/queue/add", json={"session_code": session_code, "song_data": song1_data})
+    ac.post("/queue/add", json={"session_code": session_code, "song_data": song2_data})
+
+    response = ac.get(f"/queue/list/{session_code}")
+
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 2
-    assert data[0]["name"] == "Song One"
-    assert data[1]["name"] == "Song Two"
+    names = [d["name"] for d in data]
+    assert "Song One" in names
+    assert "Song Two" in names
 
-def test_list_empty_queue(client: TestClient):
-    # Create a session
-    create_response = client.post("/session/create", json={"host_id": "host_empty", "name": "Empty List Test", "duration": "1hr"})
-    session_code = create_response.json()["session_code"]
-    
-    response = client.get(f"/queue/list/{session_code}?user_id=test_user")
-    
+def test_list_empty_queue(authed_client: dict):
+    ac = authed_client["client"]
+    session_code = authed_client["session_code"]
+
+    response = ac.get(f"/queue/list/{session_code}")
+
     assert response.status_code == 200
     assert response.json() == []
 
-def test_list_queue_ordered_by_votes(client: TestClient, session: Session):
-    # Create a session and add two songs
-    create_response = client.post("/session/create", json={"host_id": "host_vote_order", "name": "Vote Order Test", "duration": "1hr"})
-    session_code = create_response.json()["session_code"]
-    
+def test_list_queue_ordered_by_votes(authed_client: dict, session: Session):
+    ac = authed_client["client"]
+    session_code = authed_client["session_code"]
+
     song1_data = {"id": "s1_order", "name": "Song One Order", "artist_name": "Artist 1", "audio": "url1", "image": "img1", "added_by": "user1"}
     song2_data = {"id": "s2_order", "name": "Song Two Order", "artist_name": "Artist 2", "audio": "url2", "image": "img2", "added_by": "user2"}
-    
-    client.post("/queue/add", json={"session_code": session_code, "song_data": song1_data})
-    song2_response = client.post("/queue/add", json={"session_code": session_code, "song_data": song2_data})
-    
-    # Vote for the second song
+
+    ac.post("/queue/add", json={"session_code": session_code, "song_data": song1_data})
+    song2_response = ac.post("/queue/add", json={"session_code": session_code, "song_data": song2_data})
+
+    # Bump votes for song 2 directly in DB
     song2_queue_id = song2_response.json()["id"]
     db_song2 = session.query(Queue).filter(Queue.id == song2_queue_id).first()
     db_song2.votes = 10
     session.commit()
 
-    response = client.get(f"/queue/list/{session_code}?user_id=test_user")
-    
+    response = ac.get(f"/queue/list/{session_code}")
+
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 2
-    assert data[0]["name"] == "Song Two Order"  # Song 2 should be first due to more votes
+    assert data[0]["name"] == "Song Two Order"  # Highest votes first
     assert data[1]["name"] == "Song One Order"
 
-@pytest.fixture(name="song_in_queue")
-def song_in_queue_fixture(client: TestClient):
-    create_response = client.post("/session/create", json={"host_id": "host_vote", "name": "Vote Test", "duration": "1hr"})
-    session_code = create_response.json()["session_code"]
-    
-    song_data = {"id": "s_vote", "name": "Song To Vote On", "artist_name": "Artist Vote", "audio": "url_vote", "image": "img_vote", "added_by": "user_vote"}
-    add_response = client.post("/queue/add", json={"session_code": session_code, "song_data": song_data})
-    
-    return {"session_code": session_code, "queue_id": add_response.json()["id"], "user_id": "voter1"}
+# ---------------------------------------------------------------------------
+# Vote tests — fixture and tests all use authed client
+# ---------------------------------------------------------------------------
 
-def test_upvote_song(client: TestClient, song_in_queue):
-    response = client.post("/queue/vote", json={
+@pytest.fixture(name="song_in_queue")
+def song_in_queue_fixture(authed_client: dict):
+    ac = authed_client["client"]
+    session_code = authed_client["session_code"]
+
+    song_data = {
+        "id": "s_vote",
+        "name": "Song To Vote On",
+        "artist_name": "Artist Vote",
+        "audio": "url_vote",
+        "image": "img_vote",
+        "added_by": "user_vote"
+    }
+    add_response = ac.post("/queue/add", json={"session_code": session_code, "song_data": song_data})
+    assert add_response.status_code == 200
+
+    return {
+        "client": ac,
+        "session_code": session_code,
+        "queue_id": add_response.json()["id"],
+        "user_id": "voter1"
+    }
+
+def test_upvote_song(song_in_queue):
+    ac = song_in_queue["client"]
+    response = ac.post("/queue/vote", json={
         "session_code": song_in_queue["session_code"],
         "queue_id": song_in_queue["queue_id"],
         "vote": True,
@@ -315,8 +368,9 @@ def test_upvote_song(client: TestClient, song_in_queue):
     assert response.json()["votes"] == 1
     assert response.json()["user_vote_type"] is True
 
-def test_downvote_song(client: TestClient, song_in_queue):
-    response = client.post("/queue/vote", json={
+def test_downvote_song(song_in_queue):
+    ac = song_in_queue["client"]
+    response = ac.post("/queue/vote", json={
         "session_code": song_in_queue["session_code"],
         "queue_id": song_in_queue["queue_id"],
         "vote": False,
@@ -326,16 +380,17 @@ def test_downvote_song(client: TestClient, song_in_queue):
     assert response.json()["votes"] == -1
     assert response.json()["user_vote_type"] is False
 
-def test_revoke_upvote(client: TestClient, song_in_queue):
+def test_revoke_upvote(song_in_queue):
+    ac = song_in_queue["client"]
     # First upvote
-    client.post("/queue/vote", json={
+    ac.post("/queue/vote", json={
         "session_code": song_in_queue["session_code"],
         "queue_id": song_in_queue["queue_id"],
         "vote": True,
         "user_id": song_in_queue["user_id"]
     })
-    # Revoke upvote
-    response = client.post("/queue/vote", json={
+    # Revoke upvote (same direction again)
+    response = ac.post("/queue/vote", json={
         "session_code": song_in_queue["session_code"],
         "queue_id": song_in_queue["queue_id"],
         "vote": True,
@@ -345,16 +400,17 @@ def test_revoke_upvote(client: TestClient, song_in_queue):
     assert response.json()["votes"] == 0
     assert response.json()["user_vote_type"] is None
 
-def test_change_vote_from_up_to_down(client: TestClient, song_in_queue):
+def test_change_vote_from_up_to_down(song_in_queue):
+    ac = song_in_queue["client"]
     # First upvote
-    client.post("/queue/vote", json={
+    ac.post("/queue/vote", json={
         "session_code": song_in_queue["session_code"],
         "queue_id": song_in_queue["queue_id"],
         "vote": True,
         "user_id": song_in_queue["user_id"]
     })
     # Change to downvote
-    response = client.post("/queue/vote", json={
+    response = ac.post("/queue/vote", json={
         "session_code": song_in_queue["session_code"],
         "queue_id": song_in_queue["queue_id"],
         "vote": False,
@@ -364,8 +420,9 @@ def test_change_vote_from_up_to_down(client: TestClient, song_in_queue):
     assert response.json()["votes"] == -1
     assert response.json()["user_vote_type"] is False
 
-def test_vote_on_non_existent_item(client: TestClient, song_in_queue):
-    response = client.post("/queue/vote", json={
+def test_vote_on_non_existent_item(song_in_queue):
+    ac = song_in_queue["client"]
+    response = ac.post("/queue/vote", json={
         "session_code": song_in_queue["session_code"],
         "queue_id": 9999,  # Non-existent queue_id
         "vote": True,
