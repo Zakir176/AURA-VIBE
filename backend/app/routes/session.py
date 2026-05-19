@@ -39,8 +39,9 @@ async def create_session(session: SessionCreate, db: DbSession = Depends(get_db)
     token = create_access_token({"user_id": host_id, "session_code": session_code, "role": "host"})
     
     return SessionOut(
-        session_code=session_code, 
-        qr_code=qr_base64, 
+        session_code=session_code,
+        qr_code=qr_base64,
+        host_id=host_id,
         name=db_session.name,
         duration=db_session.duration,
         token=token,
@@ -56,7 +57,11 @@ async def join_session(join: SessionJoin, db: DbSession = Depends(get_db)):
     guest_id = str(uuid.uuid4())
     token = create_access_token({"user_id": guest_id, "session_code": join.session_code, "role": "guest"})
     
-    return {"message": "Joined session", "token": token}
+    return {
+        "message": f"User {guest_id} joined session {join.session_code}",
+        "token": token,
+        "host_id": db_session.host_id
+    }
 
 @router.get("/{session_code}")
 async def get_session(session_code: str, db: DbSession = Depends(get_db)):
@@ -64,7 +69,9 @@ async def get_session(session_code: str, db: DbSession = Depends(get_db)):
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
     return {
-        "session_code": db_session.session_code, 
+        "session_code": db_session.session_code,
+        "qr_code": "",
+        "host_id": db_session.host_id,
         "name": db_session.name,
         "duration": db_session.duration,
         "manual_sort": db_session.manual_sort

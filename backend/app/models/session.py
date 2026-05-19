@@ -19,6 +19,7 @@ class SessionCreate(BaseModel):
 class SessionOut(BaseModel):
     session_code: str
     qr_code: str
+    host_id: str
     name: str | None = None
     duration: str | None = None
     token: str
