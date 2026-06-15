@@ -48,8 +48,7 @@
    - websockets==13.1
 4. **Run the server**:
    `bash
-   uvicorn app.main:app --reload
-   `
+   uvicorn app.main:app --reload`
    Access at http://localhost:8000.
 
 ## Testing
@@ -61,7 +60,8 @@
   # Join session
   curl -X POST http://localhost:8000/session/join -H "Content-Type: application/json" -d "{\"session_code\": \"<session_code>\", \"user_id\": \"user123\"}"
 
-  # Add to queue
+  #
+    Add to queue
   curl -X POST http://localhost:8000/queue/add -H "Content-Type: application/json" -d "{\"session_code\": \"<session_code>\", \"song_title\": \"Test Song\", \"song_url\": \"https://youtube.com/watch?v=test\", \"added_by\": \"user123\"}"
 
   # List queue
